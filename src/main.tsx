@@ -11,7 +11,7 @@ import ErrorPage from "./pages/ErrorPage.tsx";
 import LoginSignup from "./pages/LoginSignup.tsx";
 import Logout from "./pages/Logout.tsx";
 import WelcomePage from "./pages/Welcome.tsx";
-import EDCT from "./pages/EDCT.tsx";
+import Edct from "./pages/EDCT.tsx";
 import App from "./pages/App.tsx";
 
 const router = createBrowserRouter([
@@ -44,9 +44,7 @@ const router = createBrowserRouter([
       {
         id: "edct",
         path: "/edct",
-        element: (
-          <AuthenticationGuard role="user" component={<EDCT name="Test" />} />
-        ),
+        element: <AuthenticationGuard role="user" component={<Edct />} />,
         errorElement: <ErrorPage />,
       },
     ],
