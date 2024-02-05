@@ -3,12 +3,15 @@
 //
 // It properly carries forward any state on the existing flight sim plans, and properly
 // reports whether any new or modified plans came in.
-import { DateTime } from "luxon";
-import { ImportState, IVatsimFlightPlan } from "../interfaces/IVatsimFlightPlan.mjs";
+import {
+  ImportState,
+  IVatsimFlightPlan,
+} from "../interfaces/IVatsimFlightPlan.mjs";
 import _ from "lodash";
+import vatsimEDCT from "./vatsimEDCT.mts";
 
 type ProcessFlightPlansResult = {
-  flightPlans: IVatsimFlightPlan[];
+  flightPlans: vatsimEDCT[];
   hasNew: boolean;
   hasUpdates: boolean;
 };
@@ -24,17 +27,6 @@ export function getColorByStatus(status: ImportState | undefined): string {
   }
 }
 
-// Takes a JSON ISO date string and calculates the number of minutes between now and it.
-export function minutesToEDCT(edctTime: string | undefined) {
-  if (!edctTime) {
-    return undefined;
-  }
-
-  return Math.round(
-    DateTime.fromISO(edctTime, { zone: "UTC" }).diff(DateTime.utc(), "minutes").minutes
-  );
-}
-
 // Takes a new plan and an existing plan and merges them together. The only
 // property from the existing plan that is retained is the vatsimStatus.
 //
@@ -42,60 +34,56 @@ export function minutesToEDCT(edctTime: string | undefined) {
 // were different.
 function mergeFlightPlans(
   incomingPlan: IVatsimFlightPlan,
-  existingPlan: IVatsimFlightPlan,
-  edctMode: boolean
-): { flightPlan: IVatsimFlightPlan; hasUpdates: boolean } {
+  existingPlan: vatsimEDCT
+): { flightPlan: vatsimEDCT; hasUpdates: boolean } {
   let hasUpdates = false;
 
-  if (edctMode) {
-    // In EDCT mode the only changed property that matters is departureTime.
-    hasUpdates ==
-      (incomingPlan.revision !== existingPlan.revision &&
-        incomingPlan.departureTime !== existingPlan.departureTime);
-    incomingPlan.minutesToEDCT = minutesToEDCT(incomingPlan.EDCT);
-  } else {
-    hasUpdates = incomingPlan.revision != existingPlan.revision;
-  }
+  hasUpdates =
+    incomingPlan.revision !== existingPlan.revision &&
+    incomingPlan.departureTime !== existingPlan.departureTime;
 
   const flightPlan = {
     ...incomingPlan,
     importState: hasUpdates ? ImportState.UPDATED : existingPlan.importState,
-  } as IVatsimFlightPlan;
+    minutesToEDCT: vatsimEDCT.calculateMinutesToEDCT(incomingPlan.EDCT),
+  } as vatsimEDCT;
 
   return { flightPlan, hasUpdates };
 }
 
 export function processFlightPlans(
-  currentPlans: IVatsimFlightPlan[],
-  incomingPlans: IVatsimFlightPlan[],
-  edctMode = false
+  currentEDCT: vatsimEDCT[],
+  incomingPlans: IVatsimFlightPlan[]
 ): ProcessFlightPlansResult {
   let updatedPlansCount = 0;
 
-  // If there are no incoming plans then just return that.
+  // If there are no incoming plans then just return an empty array
   if (incomingPlans.length === 0) {
     return {
-      flightPlans: incomingPlans,
+      flightPlans: [],
       hasNew: false,
       hasUpdates: false,
     };
   }
 
   // If there are no current plans then we know everything incoming is new.
-  if (currentPlans.length === 0) {
+  if (currentEDCT.length === 0) {
     return {
       flightPlans: incomingPlans.map(
         (plan) =>
           ({
             ...plan,
             importState: ImportState.NEW,
-            minutesToEDCT: minutesToEDCT(plan.EDCT),
-          } as IVatsimFlightPlan)
+          } as vatsimEDCT)
       ),
       hasNew: true,
       hasUpdates: false,
     };
   }
+
+  // Create an array of vatsimEDCT objects from the incoming plans to make everything from here on
+  // easier to deal with.
+  const incomingEDCT: vatsimEDCT[] = incomingPlans as vatsimEDCT[];
 
   // Ok this is where it gets fancy. Since there were existing items and new items
   // we need to figure out the overlap and return those, then include the new items.
@@ -107,29 +95,41 @@ export function processFlightPlans(
   // The returned list then has its plans updated with the current vatsimStatus.
   //
   // Yes I agree this seems hugely inefficient.
-  const existingPlans = _.intersectionBy(incomingPlans, currentPlans, "callsign").map(
-    (incomingPlan) => {
-      const currentPlan = currentPlans.find((p) => p.callsign === incomingPlan.callsign);
-      if (currentPlan) {
-        const mergeResult = mergeFlightPlans(incomingPlan, currentPlan, edctMode);
-        mergeResult.hasUpdates ? updatedPlansCount++ : null;
-        return mergeResult.flightPlan;
-      } else {
-        return incomingPlan;
-      }
+  const existingEDCT = _.intersectionBy(
+    incomingEDCT,
+    currentEDCT,
+    "callsign"
+  ).map((incomingPlan) => {
+    const currentPlan = currentEDCT.find(
+      (p) => p.callsign === incomingPlan.callsign
+    );
+    if (currentPlan) {
+      const mergeResult = mergeFlightPlans(incomingPlan, currentPlan);
+      mergeResult.hasUpdates ? updatedPlansCount++ : null;
+      return mergeResult.flightPlan;
+    } else {
+      return {
+        ...incomingPlan,
+        importState: ImportState.NEW,
+        minutesToEDCT: vatsimEDCT.calculateMinutesToEDCT(incomingPlan.EDCT),
+      } as vatsimEDCT;
     }
-  );
+  });
 
   // Now find the new ones by removing the existing ones from the incoming ones and
   // tag them as new.
-  const newPlans = _.differenceBy(incomingPlans, existingPlans, "callsign").map((plan) => ({
-    ...plan,
-    vatsimStatus: ImportState.NEW,
-    minutesToEDCT: minutesToEDCT(plan.EDCT),
-  }));
+  const newPlans = _.differenceBy(incomingEDCT, existingEDCT, "callsign").map(
+    (plan) => {
+      return {
+        ...plan,
+        importState: ImportState.NEW,
+        minutesToEDCT: vatsimEDCT.calculateMinutesToEDCT(plan.EDCT),
+      } as vatsimEDCT;
+    }
+  );
 
   return {
-    flightPlans: [...existingPlans, ...newPlans].sort((a, b) =>
+    flightPlans: [...existingEDCT, ...newPlans].sort((a, b) =>
       a.callsign!.localeCompare(b.callsign!)
     ),
     hasNew: newPlans.length > 0,
