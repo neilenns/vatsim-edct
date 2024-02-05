@@ -42,11 +42,10 @@ function mergeFlightPlans(
     incomingPlan.revision !== existingPlan.revision &&
     incomingPlan.departureTime !== existingPlan.departureTime;
 
-  const flightPlan = {
-    ...incomingPlan,
-    importState: hasUpdates ? ImportState.UPDATED : existingPlan.importState,
-    minutesToEDCT: vatsimEDCT.calculateMinutesToEDCT(incomingPlan.EDCT),
-  } as vatsimEDCT;
+  const flightPlan = new vatsimEDCT(
+    incomingPlan,
+    hasUpdates ? ImportState.UPDATED : existingPlan.importState
+  );
 
   return { flightPlan, hasUpdates };
 }
@@ -69,13 +68,9 @@ export function processFlightPlans(
   // If there are no current plans then we know everything incoming is new.
   if (currentEDCT.length === 0) {
     return {
-      flightPlans: incomingPlans.map(
-        (plan) =>
-          ({
-            ...plan,
-            importState: ImportState.NEW,
-          } as vatsimEDCT)
-      ),
+      flightPlans: incomingPlans.map((plan) => {
+        return new vatsimEDCT(plan);
+      }),
       hasNew: true,
       hasUpdates: false,
     };
@@ -83,14 +78,15 @@ export function processFlightPlans(
 
   // Create an array of vatsimEDCT objects from the incoming plans to make everything from here on
   // easier to deal with.
-  const incomingEDCT: vatsimEDCT[] = incomingPlans as vatsimEDCT[];
+  const incomingEDCT = incomingPlans.map((plan) => {
+    return new vatsimEDCT(plan);
+  });
 
   // Ok this is where it gets fancy. Since there were existing items and new items
   // we need to figure out the overlap and return those, then include the new items.
 
   // This finds the overlap based on callsign. From the docs, intersectionBy orders
-  // and returns references to objects in the first array, so this will give back
-  // the incoming ones with the new _id property.
+  // and returns references to objects in the first array.
   //
   // The returned list then has its plans updated with the current vatsimStatus.
   //
@@ -99,34 +95,23 @@ export function processFlightPlans(
     incomingEDCT,
     currentEDCT,
     "callsign"
-  ).map((incomingPlan) => {
+  ).map((incomingEDCT) => {
     const currentPlan = currentEDCT.find(
-      (p) => p.callsign === incomingPlan.callsign
+      (p) => p.callsign === incomingEDCT.callsign
     );
     if (currentPlan) {
-      const mergeResult = mergeFlightPlans(incomingPlan, currentPlan);
+      const mergeResult = mergeFlightPlans(incomingEDCT, currentPlan);
       mergeResult.hasUpdates ? updatedPlansCount++ : null;
       return mergeResult.flightPlan;
     } else {
-      return {
-        ...incomingPlan,
-        importState: ImportState.NEW,
-        minutesToEDCT: vatsimEDCT.calculateMinutesToEDCT(incomingPlan.EDCT),
-      } as vatsimEDCT;
+      // I don't think this can ever happen?
+      return incomingEDCT;
     }
   });
 
   // Now find the new ones by removing the existing ones from the incoming ones and
   // tag them as new.
-  const newPlans = _.differenceBy(incomingEDCT, existingEDCT, "callsign").map(
-    (plan) => {
-      return {
-        ...plan,
-        importState: ImportState.NEW,
-        minutesToEDCT: vatsimEDCT.calculateMinutesToEDCT(plan.EDCT),
-      } as vatsimEDCT;
-    }
-  );
+  const newPlans = _.differenceBy(incomingEDCT, existingEDCT, "callsign");
 
   return {
     flightPlans: [...existingEDCT, ...newPlans].sort((a, b) =>

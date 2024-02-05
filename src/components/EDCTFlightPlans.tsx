@@ -95,13 +95,12 @@ const columns: GridColDef[] = [
     valueFormatter: formatDateTime,
   },
   {
-    field: "EDCT",
+    field: "shortEDCT",
     headerName: "EDCT",
     align: "center",
     headerAlign: "center",
     width: 100,
     editable: false,
-    valueFormatter: formatDateTime,
   },
   {
     field: "minutesToEDCT",
