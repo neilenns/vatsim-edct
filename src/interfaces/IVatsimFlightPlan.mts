@@ -5,14 +5,13 @@ export enum ImportState {
 }
 
 export interface IVatsimFlightPlan {
-  _id?: string;
-  callsign?: string;
-  isPrefile?: boolean;
+  _id: string;
+  callsign: string;
+  isPrefile: boolean;
   departure?: string;
   arrival?: string;
   departureTime?: string;
   EDCT?: string;
   importState?: ImportState;
   revision: number;
-  minutesToEDCT?: number;
 }

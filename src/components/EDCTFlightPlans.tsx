@@ -36,6 +36,7 @@ import AlertSnackbar, {
 } from "./AlertSnackbar";
 import { useAudio } from "./AudioHook";
 import { updateEdct } from "../services/edct.mts";
+import vatsimEDCT from "../utils/vatsimEDCT.mts";
 
 function formatDateTime(params: GridValueFormatterParams<string>) {
   if (params.value === null || params.value === undefined) {
@@ -46,7 +47,7 @@ function formatDateTime(params: GridValueFormatterParams<string>) {
   return depTime.toLocaleString(DateTime.TIME_24_SIMPLE);
 }
 
-const logger = debug("plan-verifier:EDCTFlightPlans");
+const logger = debug("edct:EDCTFlightPlans");
 
 const columns: GridColDef[] = [
   { field: "_id" },
@@ -58,7 +59,7 @@ const columns: GridColDef[] = [
     type: "string",
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     cellClassName: (params: GridCellParams<any, string>) => {
-      const flightPlan = params.row as IVatsimFlightPlan;
+      const flightPlan = params.row as vatsimEDCT;
 
       return clsx({
         "vatsim--callsign": true,
@@ -94,13 +95,12 @@ const columns: GridColDef[] = [
     valueFormatter: formatDateTime,
   },
   {
-    field: "EDCT",
+    field: "shortEDCT",
     headerName: "EDCT",
     align: "center",
     headerAlign: "center",
     width: 100,
     editable: false,
-    valueFormatter: formatDateTime,
   },
   {
     field: "minutesToEDCT",
@@ -125,7 +125,7 @@ const getSelectedHoverBackgroundColor = (color: string, mode: string) =>
   mode === "dark" ? darken(color, 0.4) : lighten(color, 0.4);
 
 function getRowClassName(params: GridRowParams) {
-  const flightPlan = params.row as IVatsimFlightPlan;
+  const flightPlan = params.row as vatsimEDCT;
   if (!flightPlan || flightPlan.minutesToEDCT === undefined) {
     return "";
   }
@@ -209,7 +209,7 @@ const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
 const VatsimEDCTFlightPlans = () => {
   const bellPlayer = useAudio("/bell.mp3");
   const disconnectedPlayer = useAudio("/disconnected.mp3");
-  const [flightPlans, setFlightPlans] = useState<IVatsimFlightPlan[]>([]);
+  const [flightPlans, setFlightPlans] = useState<vatsimEDCT[]>([]);
   // isConnected is initialized to null so useEffect can tell the difference between first page load
   // and actually being disconnected. Otherwise what happens is on page load the disconnect
   // sound will attempt to play.
@@ -234,8 +234,7 @@ const VatsimEDCTFlightPlans = () => {
   const [hasUpdates, setHasUpdates] = useState(false);
   const [rowSelectionModel, setRowSelectionModel] =
     useState<GridRowSelectionModel>([]);
-  const [selectedFlightPlan, setSelectedFlightPlan] =
-    useState<IVatsimFlightPlan>();
+  const [selectedFlightPlan, setSelectedFlightPlan] = useState<vatsimEDCT>();
   const [selectedEDCT, setSelectedEDCT] = useState<string>("");
 
   const handleSnackbarClose: AlertSnackBarOnClose = () => setSnackbar(null);
@@ -300,7 +299,7 @@ const VatsimEDCTFlightPlans = () => {
         // This just feels like a giant hack to get around the closure issues of useEffect and
         // useState not having flightPlans be the current value every time the update event is received.
         setFlightPlans((currentPlans) => {
-          const result = processFlightPlans(currentPlans, vatsimPlans, true);
+          const result = processFlightPlans(currentPlans, vatsimPlans);
           setHasNew(result.hasNew);
           setHasUpdates(result.hasUpdates);
           return result.flightPlans;
