@@ -1,17 +1,7 @@
 import clsx from "clsx";
 import { Stream as StreamIcon } from "@mui/icons-material";
+import { Box, Button, IconButton, Stack, TextField } from "@mui/material";
 import {
-  Box,
-  Button,
-  IconButton,
-  Stack,
-  TextField,
-  darken,
-  lighten,
-  styled,
-} from "@mui/material";
-import {
-  DataGrid,
   GridCellParams,
   GridColDef,
   GridRowParams,
@@ -37,6 +27,7 @@ import AlertSnackbar, {
 import { useAudio } from "./AudioHook";
 import { updateEdct } from "../services/edct.mts";
 import vatsimEDCT from "../utils/vatsimEDCT.mts";
+import StyledEDCTDataGrid from "./StyledEDCTDataGrid";
 
 function formatDateTime(params: GridValueFormatterParams<string>) {
   if (params.value === null || params.value === undefined) {
@@ -112,18 +103,6 @@ const columns: GridColDef[] = [
   },
 ];
 
-const getBackgroundColor = (color: string, mode: string) =>
-  mode === "dark" ? darken(color, 0.7) : lighten(color, 0.7);
-
-const getHoverBackgroundColor = (color: string, mode: string) =>
-  mode === "dark" ? darken(color, 0.6) : lighten(color, 0.6);
-
-const getSelectedBackgroundColor = (color: string, mode: string) =>
-  mode === "dark" ? darken(color, 0.5) : lighten(color, 0.5);
-
-const getSelectedHoverBackgroundColor = (color: string, mode: string) =>
-  mode === "dark" ? darken(color, 0.4) : lighten(color, 0.4);
-
 function getRowClassName(params: GridRowParams) {
   const flightPlan = params.row as vatsimEDCT;
   if (!flightPlan || flightPlan.minutesToEDCT === undefined) {
@@ -138,73 +117,6 @@ function getRowClassName(params: GridRowParams) {
       flightPlan.minutesToEDCT > 0 && flightPlan.minutesToEDCT < 10,
   });
 }
-
-const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
-  "& .vatsim--callsign": {
-    fontWeight: "bold",
-    cursor: "pointer",
-  },
-  "& .vatsim--prefile": {
-    fontStyle: "italic",
-  },
-  "& .vatsim--new": {
-    color: theme.palette.warning.main,
-  },
-  "& .vatsim-updated": {
-    color: theme.palette.error.main,
-  },
-  "& .vatsim-imported": {
-    color: theme.palette.text.primary,
-  },
-  "& .vatsim--EDCT--urgent": {
-    backgroundColor: getBackgroundColor(
-      theme.palette.warning.main,
-      theme.palette.mode
-    ),
-    "&:hover": {
-      backgroundColor: getHoverBackgroundColor(
-        theme.palette.warning.main,
-        theme.palette.mode
-      ),
-    },
-    "&.Mui-selected": {
-      backgroundColor: getSelectedBackgroundColor(
-        theme.palette.warning.main,
-        theme.palette.mode
-      ),
-      "&:hover": {
-        backgroundColor: getSelectedHoverBackgroundColor(
-          theme.palette.warning.main,
-          theme.palette.mode
-        ),
-      },
-    },
-  },
-  "& .vatsim--EDCT--late": {
-    backgroundColor: getBackgroundColor(
-      theme.palette.error.main,
-      theme.palette.mode
-    ),
-    "&:hover": {
-      backgroundColor: getHoverBackgroundColor(
-        theme.palette.error.main,
-        theme.palette.mode
-      ),
-    },
-    "&.Mui-selected": {
-      backgroundColor: getSelectedBackgroundColor(
-        theme.palette.error.main,
-        theme.palette.mode
-      ),
-      "&:hover": {
-        backgroundColor: getSelectedHoverBackgroundColor(
-          theme.palette.error.main,
-          theme.palette.mode
-        ),
-      },
-    },
-  },
-}));
 
 const VatsimEDCTFlightPlans = () => {
   const bellPlayer = useAudio("/bell.mp3");
@@ -560,7 +472,7 @@ const VatsimEDCTFlightPlans = () => {
             </IconButton>
           </Stack>
         </form>
-        <StyledDataGrid
+        <StyledEDCTDataGrid
           sx={{
             mt: 2,
             ml: 1,
