@@ -4,9 +4,7 @@ import { Box, Button, IconButton, Stack, TextField } from "@mui/material";
 import {
   GridCellParams,
   GridColDef,
-  GridRowParams,
   GridRowSelectionModel,
-  GridValueFormatterParams,
 } from "@mui/x-data-grid";
 import debug from "debug";
 import { DateTime } from "luxon";
@@ -28,15 +26,7 @@ import { useAudio } from "./AudioHook";
 import { updateEdct } from "../services/edct.mts";
 import vatsimEDCT from "../utils/vatsimEDCT.mts";
 import StyledEDCTDataGrid from "./StyledEDCTDataGrid";
-
-function formatDateTime(params: GridValueFormatterParams<string>) {
-  if (params.value === null || params.value === undefined) {
-    return;
-  }
-
-  const depTime = DateTime.fromISO(params.value, { zone: "UTC" });
-  return depTime.toLocaleString(DateTime.TIME_24_SIMPLE);
-}
+import { formatDateTime, getRowClassName } from "../utils/dataGrid.mts";
 
 const logger = debug("edct:EDCTFlightPlans");
 
@@ -103,21 +93,6 @@ const columns: GridColDef[] = [
   },
 ];
 
-function getRowClassName(params: GridRowParams) {
-  const flightPlan = params.row as vatsimEDCT;
-  if (!flightPlan || flightPlan.minutesToEDCT === undefined) {
-    return "";
-  }
-
-  return clsx({
-    "":
-      flightPlan.minutesToEDCT === undefined || flightPlan.minutesToEDCT >= 10,
-    "vatsim--EDCT--late": flightPlan.minutesToEDCT <= 0,
-    "vatsim--EDCT--urgent":
-      flightPlan.minutesToEDCT > 0 && flightPlan.minutesToEDCT < 10,
-  });
-}
-
 const VatsimEDCTFlightPlans = () => {
   const bellPlayer = useAudio("/bell.mp3");
   const disconnectedPlayer = useAudio("/disconnected.mp3");
@@ -132,7 +107,7 @@ const VatsimEDCTFlightPlans = () => {
   const [arrivalCodes, setArrivalCodes] = useState(
     localStorage.getItem("edctArrivalCodes") || ""
   );
-  // Issue 709: This is a non-rendering version of airportCodesRef that can get safely used in useEffect()
+  // This is a non-rendering version of edctDepartureCodes and edctArrivalCodes that can get safely used in useEffect()
   // to send the airport codes to the connected socket.
   const departureCodesRef = useRef<string>(
     localStorage.getItem("edctDepartureCodes") || ""
