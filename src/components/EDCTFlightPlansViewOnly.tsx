@@ -13,7 +13,7 @@ import {
   ImportState,
 } from "../interfaces/IVatsimFlightPlan.mts";
 import { formatDateTime, getRowClassName } from "../utils/dataGrid.mts";
-import { processFlightPlans } from "../utils/vatsim.mts";
+import { processIncomingEDCT } from "../utils/vatsim.mts";
 import vatsimEDCT from "../utils/vatsimEDCT.mts";
 import AlertSnackbar, {
   AlertSnackBarOnClose,
@@ -21,6 +21,7 @@ import AlertSnackbar, {
 } from "./AlertSnackbar";
 import { useAudio } from "./AudioHook";
 import StyledEDCTDataGrid from "./StyledEDCTDataGrid";
+import { useImmer } from "use-immer";
 
 const logger = debug("edct:EDCTFlightPlans");
 
@@ -90,7 +91,7 @@ const columns: GridColDef[] = [
 const VatsimEDCTFlightPlansViewOnly = () => {
   const bellPlayer = useAudio("/bell.mp3");
   const disconnectedPlayer = useAudio("/disconnected.mp3");
-  const [flightPlans, setFlightPlans] = useState<vatsimEDCT[]>([]);
+  const [flightPlans, setFlightPlans] = useImmer<vatsimEDCT[]>([]);
   // isConnected is initialized to null so useEffect can tell the difference between first page load
   // and actually being disconnected. Otherwise what happens is on page load the disconnect
   // sound will attempt to play.
@@ -145,13 +146,10 @@ const VatsimEDCTFlightPlansViewOnly = () => {
       (vatsimPlans: IVatsimFlightPlan[]) => {
         logger("Received VATSIM EDCT flight plans");
 
-        // This just feels like a giant hack to get around the closure issues of useEffect and
-        // useState not having flightPlans be the current value every time the update event is received.
-        setFlightPlans((currentPlans) => {
-          const result = processFlightPlans(currentPlans, vatsimPlans);
+        setFlightPlans((draft) => {
+          const result = processIncomingEDCT(draft, vatsimPlans);
           setHasNew(result.hasNew);
           setHasEDCTUpdates(result.hasEDCTUpdates);
-          return result.flightPlans;
         });
       }
     );
@@ -228,7 +226,7 @@ const VatsimEDCTFlightPlansViewOnly = () => {
         socketRef.current.disconnect();
       }
     };
-  }, []);
+  }, [setFlightPlans]);
 
   const onIdle = () => {
     if (isConnected) {
