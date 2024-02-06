@@ -1,5 +1,5 @@
-import { styled } from "@mui/material/styles";
 import { darken, lighten } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import { DataGrid } from "@mui/x-data-grid";
 
 const getBackgroundColor = (color: string, mode: string) =>
@@ -15,22 +15,6 @@ const getSelectedHoverBackgroundColor = (color: string, mode: string) =>
   mode === "dark" ? darken(color, 0.4) : lighten(color, 0.4);
 
 const StyledEDCTDataGrid = styled(DataGrid)(({ theme }) => ({
-  "& .vatsim--callsign": {
-    fontWeight: "bold",
-    cursor: "pointer",
-  },
-  "& .vatsim--prefile": {
-    fontStyle: "italic",
-  },
-  "& .vatsim--new": {
-    color: theme.palette.success.main,
-  },
-  "& .vatsim--updated": {
-    color: theme.palette.error.main,
-  },
-  "& .vatsim-imported": {
-    color: theme.palette.text.primary,
-  },
   "& .vatsim--EDCT--urgent": {
     backgroundColor: getBackgroundColor(
       theme.palette.warning.main,

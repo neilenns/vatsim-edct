@@ -8,6 +8,7 @@ import pluralize from "pluralize";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useIdleTimer } from "react-idle-timer";
 import socketIOClient, { Socket } from "socket.io-client";
+import { useImmer } from "use-immer";
 import { ENV } from "../env.mts";
 import {
   IVatsimFlightPlan,
@@ -22,8 +23,8 @@ import AlertSnackbar, {
   AlertSnackbarProps,
 } from "./AlertSnackbar";
 import { useAudio } from "./AudioHook";
+import Legend from "./Legend";
 import StyledEDCTDataGrid from "./StyledEDCTDataGrid";
-import { useImmer } from "use-immer";
 
 const logger = debug("edct:EDCTFlightPlans");
 
@@ -431,32 +432,35 @@ const VatsimEDCTFlightPlans = () => {
             </IconButton>
           </Stack>
         </form>
-        <StyledEDCTDataGrid
-          sx={{
-            mt: 2,
-            ml: 1,
-            "&.MuiDataGrid-root .MuiDataGrid-cell:focus-within": {
-              outline: "none !important",
-            },
-          }}
-          onCellClick={toggleFlightPlanState}
-          autoHeight
-          rows={flightPlans}
-          columns={columns}
-          disableRowSelectionOnClick
-          processRowUpdate={(updatedRow, originalRow) =>
-            saveEDCTToServer(updatedRow, originalRow)
-          }
-          getRowId={(row) => (row as IVatsimFlightPlan)._id}
-          getRowClassName={getRowClassName}
-          initialState={{
-            columns: {
-              columnVisibilityModel: {
-                _id: false,
+        <Stack sx={{ mt: 2, ml: 1 }} spacing={2}>
+          <StyledEDCTDataGrid
+            sx={{
+              mt: 2,
+              ml: 1,
+              "&.MuiDataGrid-root .MuiDataGrid-cell:focus-within": {
+                outline: "none !important",
               },
-            },
-          }}
-        />
+            }}
+            onCellClick={toggleFlightPlanState}
+            autoHeight
+            rows={flightPlans}
+            columns={columns}
+            disableRowSelectionOnClick
+            processRowUpdate={(updatedRow, originalRow) =>
+              saveEDCTToServer(updatedRow, originalRow)
+            }
+            getRowId={(row) => (row as IVatsimFlightPlan)._id}
+            getRowClassName={getRowClassName}
+            initialState={{
+              columns: {
+                columnVisibilityModel: {
+                  _id: false,
+                },
+              },
+            }}
+          />
+          <Legend />
+        </Stack>
       </Box>
 
       <AlertSnackbar {...snackbar} onClose={handleSnackbarClose} />
