@@ -40,7 +40,8 @@ function mergeFlightPlans(
 
   hasUpdates =
     incomingPlan.revision !== existingPlan.revision &&
-    incomingPlan.departureTime !== existingPlan.departureTime;
+    incomingPlan.departureTime !== existingPlan.departureTime &&
+    incomingPlan.EDCT !== existingPlan.EDCT;
 
   const flightPlan = new vatsimEDCT(
     incomingPlan,
