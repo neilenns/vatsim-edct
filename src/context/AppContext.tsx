@@ -1,9 +1,9 @@
 import {
-  createContext,
   Dispatch,
   SetStateAction,
-  useEffect,
+  createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -11,15 +11,15 @@ import { IUser } from "../interfaces/IUser.mts";
 
 // This method of implementing context is based on
 // https://dmitripavlutin.com/react-context-and-usecontext/
-type Props = {
+interface Props {
   children: React.ReactNode;
-};
+}
 
 export type SetUserFunction = Dispatch<
   SetStateAction<Partial<IUser> | undefined>
 >;
 
-type AppContext = {
+interface AppContext {
   muted: boolean;
   setMuted: Dispatch<SetStateAction<boolean>>;
   autoHideImported: boolean;
@@ -28,7 +28,7 @@ type AppContext = {
   setHideInformational: Dispatch<SetStateAction<boolean>>;
   streamingMode: boolean;
   setStreamingMode: Dispatch<SetStateAction<boolean>>;
-};
+}
 
 const initialContext: AppContext = {
   muted: false,

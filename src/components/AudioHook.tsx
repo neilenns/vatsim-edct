@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import useAppContext from "../context/AppContext";
 
-export type useAudioType = { play: () => void };
+export interface useAudioType {
+  play: () => void;
+}
 
 export function useAudio(url: string): useAudioType {
   const [audio] = useState(new Audio(url));

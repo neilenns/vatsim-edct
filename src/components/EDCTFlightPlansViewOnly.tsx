@@ -96,12 +96,12 @@ const VatsimEDCTFlightPlansViewOnly = () => {
   // sound will attempt to play.
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [departureCodes, setDepartureCodes] = useState(
-    localStorage.getItem("edctDepartureCodes") || ""
+    localStorage.getItem("edctDepartureCodes") ?? ""
   );
   // This is a non-rendering version of edctDepartureCodes and edctArrivalCodes that can get safely used in useEffect()
   // to send the airport codes to the connected socket.
   const departureCodesRef = useRef<string>(
-    localStorage.getItem("edctDepartureCodes") || ""
+    localStorage.getItem("edctDepartureCodes") ?? ""
   );
   const [snackbar, setSnackbar] = useState<AlertSnackbarProps>(null);
   const socketRef = useRef<Socket | null>(null);
