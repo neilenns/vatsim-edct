@@ -63,7 +63,7 @@ const columns: GridColDef[] = [
   },
   {
     field: "departureTime",
-    headerName: "Departure time",
+    headerName: "Filed departure",
     align: "center",
     headerAlign: "center",
     width: 175,
@@ -132,7 +132,7 @@ const VatsimEDCTFlightPlansViewOnly = () => {
   }, [isConnected, disconnectedPlayer]);
 
   useEffect(() => {
-    document.title = `EDCT`;
+    document.title = `EDCT assignments`;
 
     socketRef.current = socketIOClient(ENV.VITE_SERVER_URL, {
       autoConnect: false,
@@ -334,29 +334,29 @@ const VatsimEDCTFlightPlansViewOnly = () => {
             </IconButton>
           </Stack>
         </form>
-        <StyledEDCTDataGrid
-          sx={{
-            mt: 2,
-            ml: 1,
-            "&.MuiDataGrid-root .MuiDataGrid-cell:focus-within": {
-              outline: "none !important",
-            },
-          }}
-          onCellClick={toggleFlightPlanState}
-          autoHeight
-          rows={flightPlans}
-          columns={columns}
-          disableRowSelectionOnClick
-          getRowId={(row) => (row as IVatsimFlightPlan)._id}
-          getRowClassName={getRowClassName}
-          initialState={{
-            columns: {
-              columnVisibilityModel: {
-                _id: false,
+        <Stack sx={{ mt: 2, ml: 1 }} spacing={2}>
+          <StyledEDCTDataGrid
+            sx={{
+              "&.MuiDataGrid-root .MuiDataGrid-cell:focus-within": {
+                outline: "none !important",
               },
-            },
-          }}
-        />
+            }}
+            onCellClick={toggleFlightPlanState}
+            autoHeight
+            rows={flightPlans}
+            columns={columns}
+            disableRowSelectionOnClick
+            getRowId={(row) => (row as IVatsimFlightPlan)._id}
+            getRowClassName={getRowClassName}
+            initialState={{
+              columns: {
+                columnVisibilityModel: {
+                  _id: false,
+                },
+              },
+            }}
+          />
+        </Stack>
       </Box>
 
       <AlertSnackbar {...snackbar} onClose={handleSnackbarClose} />

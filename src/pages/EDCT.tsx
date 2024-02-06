@@ -55,7 +55,7 @@ const Edct = () => {
       >
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            {viewOnly ? "EDCT" : "EDCT planning"}
+            {viewOnly ? "EDCT assignments" : "EDCT planning"}
           </Typography>
           <Typography sx={{ mr: 1, color: "text.primary" }}>
             {currentTime.toLocaleString(DateTime.TIME_24_WITH_SECONDS)}

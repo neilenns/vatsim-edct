@@ -65,7 +65,7 @@ const columns: GridColDef[] = [
   },
   {
     field: "departureTime",
-    headerName: "Departure time",
+    headerName: "Filed departure",
     align: "center",
     headerAlign: "center",
     width: 175,
