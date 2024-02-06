@@ -14,18 +14,8 @@ type ProcessFlightPlansResult = {
   flightPlans: vatsimEDCT[];
   hasNew: boolean;
   hasUpdates: boolean;
+  hasEDCTUpdates: boolean;
 };
-
-export function getColorByStatus(status: ImportState | undefined): string {
-  switch (status) {
-    case ImportState.NEW:
-      return "warning.main";
-    case ImportState.UPDATED:
-      return "error.main";
-    default:
-      return "text.primary";
-  }
-}
 
 // Takes a new plan and an existing plan and merges them together. The only
 // property from the existing plan that is retained is the vatsimStatus.
@@ -35,19 +25,26 @@ export function getColorByStatus(status: ImportState | undefined): string {
 function mergeFlightPlans(
   incomingPlan: IVatsimFlightPlan,
   existingPlan: vatsimEDCT
-): { flightPlan: vatsimEDCT; hasUpdates: boolean } {
+): { flightPlan: vatsimEDCT; hasUpdates: boolean; hasEDCTUpdates: boolean } {
   let hasUpdates = false;
+  let hasEDCTUpdates = false;
 
+  // This is the update state used to determine whether sounds are played for the TMU.
   hasUpdates =
     incomingPlan.revision !== existingPlan.revision &&
     incomingPlan.departureTime !== existingPlan.departureTime;
 
+  // Standalone check for EDCT updates so the update sound can play differently in TMU vs view mode.
+  hasEDCTUpdates = incomingPlan.EDCT != existingPlan.EDCT;
+
   const flightPlan = new vatsimEDCT(
     incomingPlan,
-    hasUpdates ? ImportState.UPDATED : existingPlan.importState
+    hasUpdates || hasEDCTUpdates
+      ? ImportState.UPDATED
+      : existingPlan.importState
   );
 
-  return { flightPlan, hasUpdates };
+  return { flightPlan, hasUpdates, hasEDCTUpdates };
 }
 
 export function processFlightPlans(
@@ -55,6 +52,7 @@ export function processFlightPlans(
   incomingPlans: IVatsimFlightPlan[]
 ): ProcessFlightPlansResult {
   let updatedPlansCount = 0;
+  let updatedEDTCCount = 0;
 
   // If there are no incoming plans then just return an empty array
   if (incomingPlans.length === 0) {
@@ -62,6 +60,7 @@ export function processFlightPlans(
       flightPlans: [],
       hasNew: false,
       hasUpdates: false,
+      hasEDCTUpdates: false,
     };
   }
 
@@ -73,6 +72,7 @@ export function processFlightPlans(
       }),
       hasNew: true,
       hasUpdates: false,
+      hasEDCTUpdates: false,
     };
   }
 
@@ -102,6 +102,7 @@ export function processFlightPlans(
     if (currentPlan) {
       const mergeResult = mergeFlightPlans(incomingEDCT, currentPlan);
       mergeResult.hasUpdates ? updatedPlansCount++ : null;
+      mergeResult.hasEDCTUpdates ? updatedEDTCCount++ : null;
       return mergeResult.flightPlan;
     } else {
       // I don't think this can ever happen?
@@ -119,5 +120,6 @@ export function processFlightPlans(
     ),
     hasNew: newPlans.length > 0,
     hasUpdates: updatedPlansCount > 0,
+    hasEDCTUpdates: updatedEDTCCount > 0,
   };
 }
