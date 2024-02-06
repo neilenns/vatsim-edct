@@ -1,11 +1,11 @@
 import { LoadingButton } from "@mui/lab";
 import { TextField, Typography } from "@mui/material";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import http from "../utils/http.mts";
-import ILoginResponse from "../interfaces/ILoginResponse.mts";
 import { AxiosError, AxiosResponse } from "axios";
 import debug from "debug";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import ILoginResponse from "../interfaces/ILoginResponse.mts";
+import http from "../utils/http.mts";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -49,7 +49,9 @@ const Login = () => {
           setError(genericErrorMessage);
         }
       })
-      .finally(() => setIsSubmitting(false));
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   return (
@@ -66,9 +68,9 @@ const Login = () => {
           margin="normal"
           fullWidth
           value={email}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setEmail(e.target.value)
-          }
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            setEmail(e.target.value);
+          }}
         />
         <TextField
           id="password"
@@ -81,9 +83,9 @@ const Login = () => {
           fullWidth
           type="password"
           value={password}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setPassword(e.target.value)
-          }
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            setPassword(e.target.value);
+          }}
         />
         {error && <Typography color="error">{error}</Typography>}
         <LoadingButton

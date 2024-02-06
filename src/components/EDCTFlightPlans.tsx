@@ -8,7 +8,7 @@ import pluralize from "pluralize";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useIdleTimer } from "react-idle-timer";
 import socketIOClient, { Socket } from "socket.io-client";
-import { apiKey, serverUrl } from "../configs/server.mts";
+import { ENV } from "../env.mts";
 import {
   IVatsimFlightPlan,
   ImportState,
@@ -98,18 +98,18 @@ const VatsimEDCTFlightPlans = () => {
   // sound will attempt to play.
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [departureCodes, setDepartureCodes] = useState(
-    localStorage.getItem("edctDepartureCodes") || ""
+    localStorage.getItem("edctDepartureCodes") ?? ""
   );
   const [arrivalCodes, setArrivalCodes] = useState(
-    localStorage.getItem("edctArrivalCodes") || ""
+    localStorage.getItem("edctArrivalCodes") ?? ""
   );
   // This is a non-rendering version of edctDepartureCodes and edctArrivalCodes that can get safely used in useEffect()
   // to send the airport codes to the connected socket.
   const departureCodesRef = useRef<string>(
-    localStorage.getItem("edctDepartureCodes") || ""
+    localStorage.getItem("edctDepartureCodes") ?? ""
   );
   const arrivalCodesCodesRef = useRef<string>(
-    localStorage.getItem("edctArrivalCodes") || ""
+    localStorage.getItem("edctArrivalCodes") ?? ""
   );
   const [snackbar, setSnackbar] = useState<AlertSnackbarProps>(null);
   const socketRef = useRef<Socket | null>(null);
@@ -117,7 +117,9 @@ const VatsimEDCTFlightPlans = () => {
   const [hasUpdates, setHasUpdates] = useState(false);
   const [hasEDCTUpdates, setHasEDCTUpdates] = useState(false);
 
-  const handleSnackbarClose: AlertSnackBarOnClose = () => setSnackbar(null);
+  const handleSnackbarClose: AlertSnackBarOnClose = () => {
+    setSnackbar(null);
+  };
 
   useEffect(() => {
     // The new entry sound plays when:
@@ -125,7 +127,7 @@ const VatsimEDCTFlightPlans = () => {
     // 2. Non EDCT updates are applied and the user is a TMU
     // 3. EDCT updates are applied and the user is a viewer
     if (hasNew || hasUpdates) {
-      void bellPlayer.play();
+      bellPlayer.play();
       setHasNew(false);
       setHasUpdates(false);
       setHasEDCTUpdates(false);
@@ -134,7 +136,7 @@ const VatsimEDCTFlightPlans = () => {
 
   useEffect(() => {
     if (isConnected !== null && !isConnected) {
-      void disconnectedPlayer.play();
+      disconnectedPlayer.play();
       // Issue 644: Once the sound's played once set isConnected to null
       // so any future calls to this method due to re-renders won't cause
       // the disconnected sound to play.
@@ -145,11 +147,11 @@ const VatsimEDCTFlightPlans = () => {
   useEffect(() => {
     document.title = `EDCT planning`;
 
-    socketRef.current = socketIOClient(serverUrl, {
+    socketRef.current = socketIOClient(ENV.VITE_SERVER_URL, {
       autoConnect: false,
       reconnection: true,
       reconnectionAttempts: 5,
-      auth: { token: apiKey },
+      auth: { token: ENV.VITE_API_KEY },
     });
 
     socketRef.current.on(
@@ -174,8 +176,8 @@ const VatsimEDCTFlightPlans = () => {
 
       socketRef.current?.emit(
         "watchEDCT",
-        departureCodesRef.current?.split(","),
-        arrivalCodesCodesRef.current?.split(",")
+        departureCodesRef.current.split(","),
+        arrivalCodesCodesRef.current.split(",")
       );
 
       setIsConnected(true);
@@ -380,7 +382,7 @@ const VatsimEDCTFlightPlans = () => {
         newEDCT.shortEDCT = vatsimEDCT.calculateShortEDCT(newEDCT.EDCT);
 
         setSnackbar({
-          children: `EDCT for ${newEDCT.callsign ?? ""} updated to ${
+          children: `EDCT for ${newEDCT.callsign} updated to ${
             newEDCTDateTime.toISOTime() ?? ""
           }`,
           severity: "info",
@@ -445,7 +447,7 @@ const VatsimEDCTFlightPlans = () => {
           processRowUpdate={(updatedRow, originalRow) =>
             saveEDCTToServer(updatedRow, originalRow)
           }
-          getRowId={(row) => (row as IVatsimFlightPlan)._id!}
+          getRowId={(row) => (row as IVatsimFlightPlan)._id}
           getRowClassName={getRowClassName}
           initialState={{
             columns: {

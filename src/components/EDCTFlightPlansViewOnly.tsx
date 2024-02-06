@@ -7,7 +7,7 @@ import pluralize from "pluralize";
 import { useEffect, useRef, useState } from "react";
 import { useIdleTimer } from "react-idle-timer";
 import socketIOClient, { Socket } from "socket.io-client";
-import { apiKey, serverUrl } from "../configs/server.mts";
+import { ENV } from "../env.mts";
 import {
   IVatsimFlightPlan,
   ImportState,
@@ -96,33 +96,33 @@ const VatsimEDCTFlightPlansViewOnly = () => {
   // sound will attempt to play.
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [departureCodes, setDepartureCodes] = useState(
-    localStorage.getItem("edctDepartureCodes") || ""
+    localStorage.getItem("edctDepartureCodes") ?? ""
   );
   // This is a non-rendering version of edctDepartureCodes and edctArrivalCodes that can get safely used in useEffect()
   // to send the airport codes to the connected socket.
   const departureCodesRef = useRef<string>(
-    localStorage.getItem("edctDepartureCodes") || ""
+    localStorage.getItem("edctDepartureCodes") ?? ""
   );
   const [snackbar, setSnackbar] = useState<AlertSnackbarProps>(null);
   const socketRef = useRef<Socket | null>(null);
   const [hasNew, setHasNew] = useState(false);
-  const [hasUpdates, setHasUpdates] = useState(false);
   const [hasEDCTUpdates, setHasEDCTUpdates] = useState(false);
 
-  const handleSnackbarClose: AlertSnackBarOnClose = () => setSnackbar(null);
+  const handleSnackbarClose: AlertSnackBarOnClose = () => {
+    setSnackbar(null);
+  };
 
   useEffect(() => {
     if (hasNew || hasEDCTUpdates) {
-      void bellPlayer.play();
+      bellPlayer.play();
       setHasNew(false);
-      setHasUpdates(false);
       setHasEDCTUpdates(false);
     }
-  }, [hasNew, hasUpdates, bellPlayer, hasEDCTUpdates]);
+  }, [hasNew, bellPlayer, hasEDCTUpdates]);
 
   useEffect(() => {
     if (isConnected !== null && !isConnected) {
-      void disconnectedPlayer.play();
+      disconnectedPlayer.play();
       // Issue 644: Once the sound's played once set isConnected to null
       // so any future calls to this method due to re-renders won't cause
       // the disconnected sound to play.
@@ -133,11 +133,11 @@ const VatsimEDCTFlightPlansViewOnly = () => {
   useEffect(() => {
     document.title = `EDCT`;
 
-    socketRef.current = socketIOClient(serverUrl, {
+    socketRef.current = socketIOClient(ENV.VITE_SERVER_URL, {
       autoConnect: false,
       reconnection: true,
       reconnectionAttempts: 5,
-      auth: { token: apiKey },
+      auth: { token: ENV.VITE_API_KEY },
     });
 
     socketRef.current.on(
@@ -150,7 +150,6 @@ const VatsimEDCTFlightPlansViewOnly = () => {
         setFlightPlans((currentPlans) => {
           const result = processFlightPlans(currentPlans, vatsimPlans);
           setHasNew(result.hasNew);
-          setHasUpdates(result.hasUpdates);
           setHasEDCTUpdates(result.hasEDCTUpdates);
           return result.flightPlans;
         });
@@ -162,7 +161,7 @@ const VatsimEDCTFlightPlansViewOnly = () => {
 
       socketRef.current?.emit(
         "watchAirports",
-        departureCodesRef.current?.split(",")
+        departureCodesRef.current.split(",")
       );
 
       setIsConnected(true);
@@ -350,7 +349,7 @@ const VatsimEDCTFlightPlansViewOnly = () => {
           rows={flightPlans}
           columns={columns}
           disableRowSelectionOnClick
-          getRowId={(row) => (row as IVatsimFlightPlan)._id!}
+          getRowId={(row) => (row as IVatsimFlightPlan)._id}
           getRowClassName={getRowClassName}
           initialState={{
             columns: {
