@@ -1,4 +1,11 @@
 import {
+  DarkMode as DarkModeIcon,
+  Help as HelpIcon,
+  LightMode as LightModeIcon,
+  VolumeOff as MutedIcon,
+  VolumeMute as UnmutedIcon,
+} from "@mui/icons-material";
+import {
   AppBar,
   Box,
   IconButton,
@@ -6,19 +13,12 @@ import {
   Typography,
   useColorScheme,
 } from "@mui/material";
-import { Link, useLocation } from "react-router-dom";
-import {
-  DarkMode as DarkModeIcon,
-  LightMode as LightModeIcon,
-  Help as HelpIcon,
-  VolumeMute as UnmutedIcon,
-  VolumeOff as MutedIcon,
-} from "@mui/icons-material";
-import useAppContext from "../context/AppContext";
-import VatsimEDCTFlightPlans from "../components/EDCTFlightPlans";
-import { useEffect, useState } from "react";
 import { DateTime } from "luxon";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import VatsimEDCTFlightPlans from "../components/EDCTFlightPlans";
 import VatsimEDCTFlightPlansViewOnly from "../components/EDCTFlightPlansViewOnly";
+import useAppContext from "../context/AppContext";
 
 const Edct = () => {
   const viewOnly = useLocation().pathname === "/view";
@@ -33,7 +33,9 @@ const Edct = () => {
     }, 1000); // 1000 milliseconds = 1 second
 
     // Clear interval on component unmount
-    return () => clearInterval(intervalId);
+    return () => {
+      clearInterval(intervalId);
+    };
   }, []); // Empty dependency array ensures effect runs only once on mount
 
   const toggleDarkMode = () => {
@@ -56,7 +58,7 @@ const Edct = () => {
             {viewOnly ? "EDCT" : "EDCT planning"}
           </Typography>
           <Typography sx={{ mr: 1, color: "text.primary" }}>
-            {currentTime?.toLocaleString(DateTime.TIME_24_WITH_SECONDS)}
+            {currentTime.toLocaleString(DateTime.TIME_24_WITH_SECONDS)}
           </Typography>
           <IconButton
             component={Link}

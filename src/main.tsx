@@ -1,18 +1,18 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import "./index.css";
-import { AppContextProvider } from "./context/AppContext.tsx";
 import AppTheme from "./components/AppTheme.tsx";
 import { AuthenticationGuard } from "./components/AuthenticationGuard.tsx";
+import { AppContextProvider } from "./context/AppContext.tsx";
+import "./index.css";
 
 // Routes
+import App from "./pages/App.tsx";
+import Edct from "./pages/EDCT.tsx";
 import ErrorPage from "./pages/ErrorPage.tsx";
 import LoginSignup from "./pages/LoginSignup.tsx";
 import Logout from "./pages/Logout.tsx";
 import WelcomePage from "./pages/Welcome.tsx";
-import Edct from "./pages/EDCT.tsx";
-import App from "./pages/App.tsx";
 
 const router = createBrowserRouter([
   {
@@ -57,12 +57,15 @@ const router = createBrowserRouter([
   },
 ]);
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <AppContextProvider>
-      <AppTheme>
-        <RouterProvider router={router} />
-      </AppTheme>
-    </AppContextProvider>
-  </React.StrictMode>
-);
+const root = document.getElementById("root");
+
+root &&
+  ReactDOM.createRoot(root).render(
+    <React.StrictMode>
+      <AppContextProvider>
+        <AppTheme>
+          <RouterProvider router={router} />
+        </AppTheme>
+      </AppContextProvider>
+    </React.StrictMode>
+  );

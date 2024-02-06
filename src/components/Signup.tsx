@@ -2,9 +2,9 @@ import { LoadingButton } from "@mui/lab";
 import { TextField, Typography } from "@mui/material";
 import debug from "debug";
 
+import { AxiosError } from "axios";
 import React, { useState } from "react";
 import http from "../utils/http.mts";
-import { AxiosError } from "axios";
 
 const Signup = () => {
   const [firstName, setFirstName] = useState("");
@@ -40,7 +40,9 @@ const Signup = () => {
         logger(error);
         setError(genericErrorMessage);
       })
-      .finally(() => setIsSubmitting(false));
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   return (
@@ -56,9 +58,9 @@ const Signup = () => {
           margin="normal"
           fullWidth
           value={firstName}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setFirstName(e.target.value)
-          }
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            setFirstName(e.target.value);
+          }}
         />
         <TextField
           id="lastName"
@@ -70,9 +72,9 @@ const Signup = () => {
           margin="normal"
           fullWidth
           value={lastName}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setLastName(e.target.value)
-          }
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            setLastName(e.target.value);
+          }}
         />
         <TextField
           id="email"
@@ -85,9 +87,9 @@ const Signup = () => {
           margin="normal"
           fullWidth
           value={email}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setEmail(e.target.value)
-          }
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            setEmail(e.target.value);
+          }}
         />
         <TextField
           id="password"
@@ -100,9 +102,9 @@ const Signup = () => {
           fullWidth
           type="password"
           value={password}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setPassword(e.target.value)
-          }
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            setPassword(e.target.value);
+          }}
         />
         {error && <Typography color="error">{error}</Typography>}
         <LoadingButton

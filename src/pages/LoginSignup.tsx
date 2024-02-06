@@ -1,10 +1,10 @@
-import { Container, Card, Tabs, Tab, Box } from "@mui/material";
-import Signup from "../components/Signup";
-import Login from "../components/Login";
+import { Box, Card, Container, Tab, Tabs } from "@mui/material";
 import { Link, useMatches } from "react-router-dom";
+import Login from "../components/Login";
+import Signup from "../components/Signup";
 
 const LoginSignup = () => {
-  const currentTab = useMatches()[0]!.id;
+  const currentTab = useMatches()[0].id;
 
   return (
     <Box
@@ -17,9 +17,19 @@ const LoginSignup = () => {
     >
       <Container maxWidth="xs">
         <Card>
-          <Tabs value={currentTab} indicatorColor="primary" textColor="primary" centered>
+          <Tabs
+            value={currentTab}
+            indicatorColor="primary"
+            textColor="primary"
+            centered
+          >
             <Tab label="Login" value="login" component={Link} to={"/login"} />
-            <Tab label="Sign up" value="signup" component={Link} to={"/signup"} />
+            <Tab
+              label="Sign up"
+              value="signup"
+              component={Link}
+              to={"/signup"}
+            />
           </Tabs>
           <Box p={3}>
             {currentTab === "login" && <Login />}
