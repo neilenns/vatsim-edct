@@ -1,5 +1,5 @@
 import { Stream as StreamIcon } from "@mui/icons-material";
-import { Box, IconButton, Stack, TextField } from "@mui/material";
+import { Box, IconButton, Stack, TextField, Typography } from "@mui/material";
 import { GridCellParams, GridColDef } from "@mui/x-data-grid";
 import clsx from "clsx";
 import debug from "debug";
@@ -7,6 +7,7 @@ import pluralize from "pluralize";
 import { useEffect, useRef, useState } from "react";
 import { useIdleTimer } from "react-idle-timer";
 import socketIOClient, { Socket } from "socket.io-client";
+import { useImmer } from "use-immer";
 import { ENV } from "../env.mts";
 import {
   IVatsimFlightPlan,
@@ -21,7 +22,6 @@ import AlertSnackbar, {
 } from "./AlertSnackbar";
 import { useAudio } from "./AudioHook";
 import StyledEDCTDataGrid from "./StyledEDCTDataGrid";
-import { useImmer } from "use-immer";
 
 const logger = debug("edct:EDCTFlightPlans");
 
@@ -356,9 +356,13 @@ const VatsimEDCTFlightPlansViewOnly = () => {
               },
             }}
           />
+          <Typography>
+            Legend: <span className="vatsim--prefile">Prefile</span>{" "}
+            <span className="vatsim--new">New</span>{" "}
+            <span className="vatsim--updated">Updated</span>
+          </Typography>
         </Stack>
       </Box>
-
       <AlertSnackbar {...snackbar} onClose={handleSnackbarClose} />
     </>
   );
