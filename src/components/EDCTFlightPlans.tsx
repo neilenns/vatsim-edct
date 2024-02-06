@@ -403,35 +403,33 @@ const VatsimEDCTFlightPlans = () => {
   return (
     <>
       <Box sx={{ mt: 2 }}>
-        {!viewOnly && (
-          <form>
-            <Stack direction="row" sx={{ mt: 2, ml: 1 }} spacing={2}>
-              <TextField
-                label="Departure codes"
-                value={departureCodes}
-                onChange={(e) => {
-                  setDepartureCodes(e.target.value);
-                  disconnectFromVatsim();
-                }}
-              />
-              <TextField
-                label="Arrival codes"
-                value={arrivalCodes}
-                onChange={(e) => {
-                  setArrivalCodes(e.target.value);
-                  disconnectFromVatsim();
-                }}
-              />
-              <IconButton
-                onClick={toggleVatsimConnection}
-                color={isConnected ? "primary" : "default"}
-                title={isConnected ? "Disconnect" : "Connect"}
-              >
-                <StreamIcon />
-              </IconButton>
-            </Stack>
-          </form>
-        )}
+        <form>
+          <Stack direction="row" sx={{ mt: 2, ml: 1 }} spacing={2}>
+            <TextField
+              label="Departure codes"
+              value={departureCodes}
+              onChange={(e) => {
+                setDepartureCodes(e.target.value);
+                disconnectFromVatsim();
+              }}
+            />
+            <TextField
+              label="Arrival codes"
+              value={arrivalCodes}
+              onChange={(e) => {
+                setArrivalCodes(e.target.value);
+                disconnectFromVatsim();
+              }}
+            />
+            <IconButton
+              onClick={toggleVatsimConnection}
+              color={isConnected ? "primary" : "default"}
+              title={isConnected ? "Disconnect" : "Connect"}
+            >
+              <StreamIcon />
+            </IconButton>
+          </Stack>
+        </form>
         <StyledEDCTDataGrid
           sx={{
             mt: 2,
