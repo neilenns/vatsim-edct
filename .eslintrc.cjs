@@ -6,7 +6,14 @@ module.exports = {
     "plugin:@typescript-eslint/strict-type-checked",
     "plugin:react-hooks/recommended",
     "plugin:@typescript-eslint/stylistic-type-checked",
+    "plugin:react/recommended",
+    "plugin:react/jsx-runtime",
   ],
+  settings: {
+    react: {
+      version: "detect",
+    },
+  },
   ignorePatterns: ["dist", ".eslintrc.cjs"],
   parser: "@typescript-eslint/parser",
   plugins: ["react-refresh"],

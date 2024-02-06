@@ -43,7 +43,7 @@ const AlertSnackbar = (props: AlertSnackbarProps) => {
         onClose={handleClose}
         autoHideDuration={ENV.VITE_SNACKBAR_AUTOHIDE_DURATION}
       >
-        <Alert children={snackbar.children} severity={snackbar.severity} />
+        <Alert severity={snackbar.severity}>{snackbar.children}</Alert>
       </Snackbar>
     )
   );

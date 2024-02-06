@@ -6,4 +6,4 @@ const envSchema = z.object({
   VITE_SNACKBAR_AUTOHIDE_DURATION: z.number().default(6000),
 });
 
-export const ENV = envSchema.parse(process.env);
+export const ENV = envSchema.parse(import.meta.env);
