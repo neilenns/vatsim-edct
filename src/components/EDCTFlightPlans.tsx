@@ -29,6 +29,7 @@ import AlertSnackbar, {
 } from "./AlertSnackbar";
 import { useAudio } from "./AudioHook";
 import StyledEDCTDataGrid from "./StyledEDCTDataGrid";
+import { useLocation } from "react-router";
 
 const logger = debug("edct:EDCTFlightPlans");
 
@@ -96,7 +97,7 @@ const columns: GridColDef[] = [
 ];
 
 const VatsimEDCTFlightPlans = () => {
-  const viewOnly = window.location.pathname === "/view";
+  const viewOnly = useLocation().pathname === "/view";
   const bellPlayer = useAudio("/bell.mp3");
   const disconnectedPlayer = useAudio("/disconnected.mp3");
   const [flightPlans, setFlightPlans] = useState<vatsimEDCT[]>([]);
