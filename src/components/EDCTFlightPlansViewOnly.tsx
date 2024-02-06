@@ -143,7 +143,7 @@ const VatsimEDCTFlightPlansViewOnly = () => {
     });
 
     socketRef.current.on(
-      "vatsimFlightPlansUpdate",
+      "vatsimEDCTViewOnlyUpdate",
       (vatsimPlans: IVatsimFlightPlan[]) => {
         logger("Received VATSIM EDCT flight plans");
 
@@ -159,7 +159,7 @@ const VatsimEDCTFlightPlansViewOnly = () => {
       logger("Connected for VATSIM EDCT flight plan updates");
 
       socketRef.current?.emit(
-        "watchAirports",
+        "watchEDCTViewOnly",
         departureCodesRef.current.split(",")
       );
 
