@@ -47,6 +47,12 @@ const router = createBrowserRouter([
         element: <AuthenticationGuard role="user" component={<Edct />} />,
         errorElement: <ErrorPage />,
       },
+      {
+        id: "view",
+        path: "/view",
+        element: <Edct />,
+        errorElement: <ErrorPage />,
+      },
     ],
   },
 ]);

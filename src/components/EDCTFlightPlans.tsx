@@ -1,6 +1,12 @@
 import { Stream as StreamIcon } from "@mui/icons-material";
 import { Box, IconButton, Stack, TextField } from "@mui/material";
-import { GridCellParams, GridColDef, GridRowModel } from "@mui/x-data-grid";
+import {
+  GridCellEditStartParams,
+  GridCellParams,
+  GridColDef,
+  GridRowModel,
+  MuiEvent,
+} from "@mui/x-data-grid";
 import clsx from "clsx";
 import debug from "debug";
 import { DateTime } from "luxon";
@@ -90,6 +96,7 @@ const columns: GridColDef[] = [
 ];
 
 const VatsimEDCTFlightPlans = () => {
+  const viewOnly = window.location.pathname === "/view";
   const bellPlayer = useAudio("/bell.mp3");
   const disconnectedPlayer = useAudio("/disconnected.mp3");
   const [flightPlans, setFlightPlans] = useState<vatsimEDCT[]>([]);
@@ -395,33 +402,35 @@ const VatsimEDCTFlightPlans = () => {
   return (
     <>
       <Box sx={{ mt: 2 }}>
-        <form>
-          <Stack direction="row" sx={{ mt: 2, ml: 1 }} spacing={2}>
-            <TextField
-              label="Departure codes"
-              value={departureCodes}
-              onChange={(e) => {
-                setDepartureCodes(e.target.value);
-                disconnectFromVatsim();
-              }}
-            />
-            <TextField
-              label="Arrival codes"
-              value={arrivalCodes}
-              onChange={(e) => {
-                setArrivalCodes(e.target.value);
-                disconnectFromVatsim();
-              }}
-            />
-            <IconButton
-              onClick={toggleVatsimConnection}
-              color={isConnected ? "primary" : "default"}
-              title={isConnected ? "Disconnect" : "Connect"}
-            >
-              <StreamIcon />
-            </IconButton>
-          </Stack>
-        </form>
+        {!viewOnly && (
+          <form>
+            <Stack direction="row" sx={{ mt: 2, ml: 1 }} spacing={2}>
+              <TextField
+                label="Departure codes"
+                value={departureCodes}
+                onChange={(e) => {
+                  setDepartureCodes(e.target.value);
+                  disconnectFromVatsim();
+                }}
+              />
+              <TextField
+                label="Arrival codes"
+                value={arrivalCodes}
+                onChange={(e) => {
+                  setArrivalCodes(e.target.value);
+                  disconnectFromVatsim();
+                }}
+              />
+              <IconButton
+                onClick={toggleVatsimConnection}
+                color={isConnected ? "primary" : "default"}
+                title={isConnected ? "Disconnect" : "Connect"}
+              >
+                <StreamIcon />
+              </IconButton>
+            </Stack>
+          </form>
+        )}
         <StyledEDCTDataGrid
           sx={{
             mt: 2,
@@ -440,6 +449,9 @@ const VatsimEDCTFlightPlans = () => {
           }
           getRowId={(row) => (row as IVatsimFlightPlan)._id!}
           getRowClassName={getRowClassName}
+          onCellEditStart={(_: GridCellEditStartParams, event: MuiEvent) => {
+            event.defaultMuiPrevented = viewOnly;
+          }}
           initialState={{
             columns: {
               columnVisibilityModel: {
