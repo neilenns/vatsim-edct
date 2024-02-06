@@ -123,16 +123,22 @@ const VatsimEDCTFlightPlans = () => {
   const socketRef = useRef<Socket | null>(null);
   const [hasNew, setHasNew] = useState(false);
   const [hasUpdates, setHasUpdates] = useState(false);
+  const [hasEDCTUpdates, setHasEDCTUpdates] = useState(false);
 
   const handleSnackbarClose: AlertSnackBarOnClose = () => setSnackbar(null);
 
   useEffect(() => {
-    if (hasNew || hasUpdates) {
+    // The new entry sound plays when:
+    // 1. Any new entry is received
+    // 2. Non EDCT updates are applied and the user is a TMU
+    // 3. EDCT updates are applied and the user is a viewer
+    if (hasNew || (hasUpdates && !viewOnly) || (hasEDCTUpdates && viewOnly)) {
       void bellPlayer.play();
       setHasNew(false);
       setHasUpdates(false);
+      setHasEDCTUpdates(false);
     }
-  }, [hasNew, hasUpdates, bellPlayer]);
+  }, [hasNew, hasUpdates, bellPlayer, hasEDCTUpdates, viewOnly]);
 
   useEffect(() => {
     if (isConnected !== null && !isConnected) {
@@ -165,6 +171,7 @@ const VatsimEDCTFlightPlans = () => {
           const result = processFlightPlans(currentPlans, vatsimPlans);
           setHasNew(result.hasNew);
           setHasUpdates(result.hasUpdates);
+          setHasEDCTUpdates(result.hasEDCTUpdates);
           return result.flightPlans;
         });
       }
