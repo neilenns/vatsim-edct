@@ -1,11 +1,10 @@
 import { Stream as StreamIcon } from "@mui/icons-material";
 import { Box, IconButton, Stack, TextField } from "@mui/material";
-import { GridCellParams, GridColDef, GridRowModel } from "@mui/x-data-grid";
+import { GridCellParams, GridColDef } from "@mui/x-data-grid";
 import clsx from "clsx";
 import debug from "debug";
-import { DateTime } from "luxon";
 import pluralize from "pluralize";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useIdleTimer } from "react-idle-timer";
 import socketIOClient, { Socket } from "socket.io-client";
 import { apiKey, serverUrl } from "../configs/server.mts";
@@ -13,7 +12,6 @@ import {
   IVatsimFlightPlan,
   ImportState,
 } from "../interfaces/IVatsimFlightPlan.mts";
-import { updateEdct } from "../services/edct.mts";
 import { formatDateTime, getRowClassName } from "../utils/dataGrid.mts";
 import { processFlightPlans } from "../utils/vatsim.mts";
 import vatsimEDCT from "../utils/vatsimEDCT.mts";
@@ -77,7 +75,7 @@ const columns: GridColDef[] = [
     align: "center",
     headerAlign: "center",
     width: 100,
-    editable: true,
+    editable: false,
   },
   {
     field: "minutesToEDCT",
@@ -89,7 +87,7 @@ const columns: GridColDef[] = [
   },
 ];
 
-const VatsimEDCTFlightPlans = () => {
+const VatsimEDCTFlightPlansViewOnly = () => {
   const bellPlayer = useAudio("/bell.mp3");
   const disconnectedPlayer = useAudio("/disconnected.mp3");
   const [flightPlans, setFlightPlans] = useState<vatsimEDCT[]>([]);
@@ -100,16 +98,10 @@ const VatsimEDCTFlightPlans = () => {
   const [departureCodes, setDepartureCodes] = useState(
     localStorage.getItem("edctDepartureCodes") || ""
   );
-  const [arrivalCodes, setArrivalCodes] = useState(
-    localStorage.getItem("edctArrivalCodes") || ""
-  );
   // This is a non-rendering version of edctDepartureCodes and edctArrivalCodes that can get safely used in useEffect()
   // to send the airport codes to the connected socket.
   const departureCodesRef = useRef<string>(
     localStorage.getItem("edctDepartureCodes") || ""
-  );
-  const arrivalCodesCodesRef = useRef<string>(
-    localStorage.getItem("edctArrivalCodes") || ""
   );
   const [snackbar, setSnackbar] = useState<AlertSnackbarProps>(null);
   const socketRef = useRef<Socket | null>(null);
@@ -120,11 +112,7 @@ const VatsimEDCTFlightPlans = () => {
   const handleSnackbarClose: AlertSnackBarOnClose = () => setSnackbar(null);
 
   useEffect(() => {
-    // The new entry sound plays when:
-    // 1. Any new entry is received
-    // 2. Non EDCT updates are applied and the user is a TMU
-    // 3. EDCT updates are applied and the user is a viewer
-    if (hasNew || hasUpdates) {
+    if (hasNew || hasEDCTUpdates) {
       void bellPlayer.play();
       setHasNew(false);
       setHasUpdates(false);
@@ -143,7 +131,7 @@ const VatsimEDCTFlightPlans = () => {
   }, [isConnected, disconnectedPlayer]);
 
   useEffect(() => {
-    document.title = `EDCT planning`;
+    document.title = `EDCT`;
 
     socketRef.current = socketIOClient(serverUrl, {
       autoConnect: false,
@@ -153,7 +141,7 @@ const VatsimEDCTFlightPlans = () => {
     });
 
     socketRef.current.on(
-      "vatsimEDCTupdate",
+      "vatsimFlightPlansUpdate",
       (vatsimPlans: IVatsimFlightPlan[]) => {
         logger("Received VATSIM EDCT flight plans");
 
@@ -173,9 +161,8 @@ const VatsimEDCTFlightPlans = () => {
       logger("Connected for VATSIM EDCT flight plan updates");
 
       socketRef.current?.emit(
-        "watchEDCT",
-        departureCodesRef.current?.split(","),
-        arrivalCodesCodesRef.current?.split(",")
+        "watchAirports",
+        departureCodesRef.current?.split(",")
       );
 
       setIsConnected(true);
@@ -278,7 +265,7 @@ const VatsimEDCTFlightPlans = () => {
   };
 
   const toggleVatsimConnection = () => {
-    if (departureCodes === "" || arrivalCodes === "") return;
+    if (departureCodes === "") return;
 
     // Not currently connected so connect
     if (!isConnected && socketRef.current) {
@@ -286,18 +273,14 @@ const VatsimEDCTFlightPlans = () => {
 
       // Clean up the airport codes
       const cleanedDepartureCodes = cleanCodes(departureCodes);
-      const cleanedArrivalCodes = cleanCodes(arrivalCodes);
 
       localStorage.setItem("edctDepartureCodes", cleanedDepartureCodes);
-      localStorage.setItem("edctArrivalCodes", cleanedArrivalCodes);
 
       // Issue 709: This is set as both a state and a ref to ensure the
       // airport codes are available in the socket connected event without
       //having to add them as a useEffects() dependency.
       setDepartureCodes(cleanedDepartureCodes);
       departureCodesRef.current = cleanedDepartureCodes;
-      setArrivalCodes(cleanedArrivalCodes);
-      arrivalCodesCodesRef.current = cleanedArrivalCodes;
 
       socketRef.current.connect();
     }
@@ -332,73 +315,6 @@ const VatsimEDCTFlightPlans = () => {
     }
   };
 
-  const saveEDCTToServer = useCallback(
-    async (newRow: GridRowModel, originalRow: GridRowModel) => {
-      const newEDCT = newRow as vatsimEDCT;
-
-      if (!newEDCT._id || !newEDCT.shortEDCT) {
-        setSnackbar({
-          children: `Unable to update EDCT: _id or EDCT is undefined.`,
-          severity: "error",
-        });
-        return originalRow;
-      }
-
-      const timeRegex = /^(\d{2}:\d{2}$)/; // hh:mm
-      const plusRegex = /^\+(\d+)$/; // +time
-
-      let newEDCTDateTime: DateTime;
-
-      // If the string starts with + then the new EDCT time is the current time in UTC plus the requested minutes
-      if (
-        newEDCT.shortEDCT.startsWith("+") &&
-        plusRegex.test(newEDCT.shortEDCT)
-      ) {
-        const minutes = parseInt(newEDCT.shortEDCT.substring(1));
-        newEDCTDateTime = DateTime.utc().plus({ minutes });
-      }
-      // Otherwise assume it is a time in the format "HH:mm"
-      else if (timeRegex.test(newEDCT.shortEDCT)) {
-        newEDCTDateTime = DateTime.fromFormat(newEDCT.shortEDCT, "HH:mm", {
-          zone: "UTC",
-        });
-      } else {
-        setSnackbar({
-          children: `Unable to updated EDCT: ${newEDCT.shortEDCT} is not a valid format.`,
-          severity: "error",
-        });
-        return originalRow;
-      }
-
-      try {
-        await updateEdct(newEDCT._id, newEDCTDateTime);
-
-        // The GridRowModel isn't really a vatsimEDCT so it doesn't have a true EDCT setter.
-        // This means manually updating the shortEDCT and minutesToEDCT properties
-        newEDCT.EDCT = newEDCTDateTime.toISO() ?? "";
-        newEDCT.minutesToEDCT = vatsimEDCT.calculateMinutesToEDCT(newEDCT.EDCT);
-        newEDCT.shortEDCT = vatsimEDCT.calculateShortEDCT(newEDCT.EDCT);
-
-        setSnackbar({
-          children: `EDCT for ${newEDCT.callsign ?? ""} updated to ${
-            newEDCTDateTime.toISOTime() ?? ""
-          }`,
-          severity: "info",
-        });
-
-        return newEDCT;
-      } catch (error) {
-        const err = error as Error;
-        setSnackbar({
-          children: `Unable to update EDCT for ${newEDCT.callsign}: ${err.message}`,
-          severity: "error",
-        });
-        return originalRow;
-      }
-    },
-    []
-  );
-
   return (
     <>
       <Box sx={{ mt: 2 }}>
@@ -409,14 +325,6 @@ const VatsimEDCTFlightPlans = () => {
               value={departureCodes}
               onChange={(e) => {
                 setDepartureCodes(e.target.value);
-                disconnectFromVatsim();
-              }}
-            />
-            <TextField
-              label="Arrival codes"
-              value={arrivalCodes}
-              onChange={(e) => {
-                setArrivalCodes(e.target.value);
                 disconnectFromVatsim();
               }}
             />
@@ -442,9 +350,6 @@ const VatsimEDCTFlightPlans = () => {
           rows={flightPlans}
           columns={columns}
           disableRowSelectionOnClick
-          processRowUpdate={(updatedRow, originalRow) =>
-            saveEDCTToServer(updatedRow, originalRow)
-          }
           getRowId={(row) => (row as IVatsimFlightPlan)._id!}
           getRowClassName={getRowClassName}
           initialState={{
@@ -462,4 +367,4 @@ const VatsimEDCTFlightPlans = () => {
   );
 };
 
-export default VatsimEDCTFlightPlans;
+export default VatsimEDCTFlightPlansViewOnly;

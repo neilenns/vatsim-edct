@@ -6,7 +6,7 @@ import {
   Typography,
   useColorScheme,
 } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   DarkMode as DarkModeIcon,
   LightMode as LightModeIcon,
@@ -18,8 +18,10 @@ import useAppContext from "../context/AppContext";
 import VatsimEDCTFlightPlans from "../components/EDCTFlightPlans";
 import { useEffect, useState } from "react";
 import { DateTime } from "luxon";
+import VatsimEDCTFlightPlansViewOnly from "../components/EDCTFlightPlansViewOnly";
 
 const Edct = () => {
+  const viewOnly = useLocation().pathname === "/view";
   const { mode, setMode } = useColorScheme();
   const { muted, setMuted } = useAppContext();
   const [currentTime, setCurrentTime] = useState<DateTime>(DateTime.utc());
@@ -51,7 +53,7 @@ const Edct = () => {
       >
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            EDCT planning
+            {viewOnly ? "EDCT" : "EDCT planning"}
           </Typography>
           <Typography sx={{ mr: 1, color: "text.primary" }}>
             {currentTime?.toLocaleString(DateTime.TIME_24_WITH_SECONDS)}
@@ -84,7 +86,11 @@ const Edct = () => {
 
       {/* Core page */}
       <Box sx={{ display: "flex", flex: 1 }}>
-        <VatsimEDCTFlightPlans />
+        {viewOnly ? (
+          <VatsimEDCTFlightPlansViewOnly />
+        ) : (
+          <VatsimEDCTFlightPlans />
+        )}
       </Box>
     </Box>
   );
