@@ -1,23 +1,11 @@
-import clsx from "clsx";
 import { Stream as StreamIcon } from "@mui/icons-material";
+import { Box, Button, IconButton, Stack, TextField } from "@mui/material";
 import {
-  Box,
-  Button,
-  IconButton,
-  Stack,
-  TextField,
-  darken,
-  lighten,
-  styled,
-} from "@mui/material";
-import {
-  DataGrid,
   GridCellParams,
   GridColDef,
-  GridRowParams,
   GridRowSelectionModel,
-  GridValueFormatterParams,
 } from "@mui/x-data-grid";
+import clsx from "clsx";
 import debug from "debug";
 import { DateTime } from "luxon";
 import pluralize from "pluralize";
@@ -29,23 +17,16 @@ import {
   IVatsimFlightPlan,
   ImportState,
 } from "../interfaces/IVatsimFlightPlan.mts";
+import { updateEdct } from "../services/edct.mts";
+import { formatDateTime, getRowClassName } from "../utils/dataGrid.mts";
 import { processFlightPlans } from "../utils/vatsim.mts";
+import vatsimEDCT from "../utils/vatsimEDCT.mts";
 import AlertSnackbar, {
   AlertSnackBarOnClose,
   AlertSnackbarProps,
 } from "./AlertSnackbar";
 import { useAudio } from "./AudioHook";
-import { updateEdct } from "../services/edct.mts";
-import vatsimEDCT from "../utils/vatsimEDCT.mts";
-
-function formatDateTime(params: GridValueFormatterParams<string>) {
-  if (params.value === null || params.value === undefined) {
-    return;
-  }
-
-  const depTime = DateTime.fromISO(params.value, { zone: "UTC" });
-  return depTime.toLocaleString(DateTime.TIME_24_SIMPLE);
-}
+import StyledEDCTDataGrid from "./StyledEDCTDataGrid";
 
 const logger = debug("edct:EDCTFlightPlans");
 
@@ -112,100 +93,6 @@ const columns: GridColDef[] = [
   },
 ];
 
-const getBackgroundColor = (color: string, mode: string) =>
-  mode === "dark" ? darken(color, 0.7) : lighten(color, 0.7);
-
-const getHoverBackgroundColor = (color: string, mode: string) =>
-  mode === "dark" ? darken(color, 0.6) : lighten(color, 0.6);
-
-const getSelectedBackgroundColor = (color: string, mode: string) =>
-  mode === "dark" ? darken(color, 0.5) : lighten(color, 0.5);
-
-const getSelectedHoverBackgroundColor = (color: string, mode: string) =>
-  mode === "dark" ? darken(color, 0.4) : lighten(color, 0.4);
-
-function getRowClassName(params: GridRowParams) {
-  const flightPlan = params.row as vatsimEDCT;
-  if (!flightPlan || flightPlan.minutesToEDCT === undefined) {
-    return "";
-  }
-
-  return clsx({
-    "":
-      flightPlan.minutesToEDCT === undefined || flightPlan.minutesToEDCT >= 10,
-    "vatsim--EDCT--late": flightPlan.minutesToEDCT <= 0,
-    "vatsim--EDCT--urgent":
-      flightPlan.minutesToEDCT > 0 && flightPlan.minutesToEDCT < 10,
-  });
-}
-
-const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
-  "& .vatsim--callsign": {
-    fontWeight: "bold",
-    cursor: "pointer",
-  },
-  "& .vatsim--prefile": {
-    fontStyle: "italic",
-  },
-  "& .vatsim--new": {
-    color: theme.palette.warning.main,
-  },
-  "& .vatsim-updated": {
-    color: theme.palette.error.main,
-  },
-  "& .vatsim-imported": {
-    color: theme.palette.text.primary,
-  },
-  "& .vatsim--EDCT--urgent": {
-    backgroundColor: getBackgroundColor(
-      theme.palette.warning.main,
-      theme.palette.mode
-    ),
-    "&:hover": {
-      backgroundColor: getHoverBackgroundColor(
-        theme.palette.warning.main,
-        theme.palette.mode
-      ),
-    },
-    "&.Mui-selected": {
-      backgroundColor: getSelectedBackgroundColor(
-        theme.palette.warning.main,
-        theme.palette.mode
-      ),
-      "&:hover": {
-        backgroundColor: getSelectedHoverBackgroundColor(
-          theme.palette.warning.main,
-          theme.palette.mode
-        ),
-      },
-    },
-  },
-  "& .vatsim--EDCT--late": {
-    backgroundColor: getBackgroundColor(
-      theme.palette.error.main,
-      theme.palette.mode
-    ),
-    "&:hover": {
-      backgroundColor: getHoverBackgroundColor(
-        theme.palette.error.main,
-        theme.palette.mode
-      ),
-    },
-    "&.Mui-selected": {
-      backgroundColor: getSelectedBackgroundColor(
-        theme.palette.error.main,
-        theme.palette.mode
-      ),
-      "&:hover": {
-        backgroundColor: getSelectedHoverBackgroundColor(
-          theme.palette.error.main,
-          theme.palette.mode
-        ),
-      },
-    },
-  },
-}));
-
 const VatsimEDCTFlightPlans = () => {
   const bellPlayer = useAudio("/bell.mp3");
   const disconnectedPlayer = useAudio("/disconnected.mp3");
@@ -220,7 +107,7 @@ const VatsimEDCTFlightPlans = () => {
   const [arrivalCodes, setArrivalCodes] = useState(
     localStorage.getItem("edctArrivalCodes") || ""
   );
-  // Issue 709: This is a non-rendering version of airportCodesRef that can get safely used in useEffect()
+  // This is a non-rendering version of edctDepartureCodes and edctArrivalCodes that can get safely used in useEffect()
   // to send the airport codes to the connected socket.
   const departureCodesRef = useRef<string>(
     localStorage.getItem("edctDepartureCodes") || ""
@@ -560,7 +447,7 @@ const VatsimEDCTFlightPlans = () => {
             </IconButton>
           </Stack>
         </form>
-        <StyledDataGrid
+        <StyledEDCTDataGrid
           sx={{
             mt: 2,
             ml: 1,
