@@ -7,6 +7,7 @@ import pluralize from "pluralize";
 import { useEffect, useRef, useState } from "react";
 import { useIdleTimer } from "react-idle-timer";
 import socketIOClient, { Socket } from "socket.io-client";
+import { useImmer } from "use-immer";
 import { ENV } from "../env.mts";
 import {
   IVatsimFlightPlan,
@@ -20,8 +21,8 @@ import AlertSnackbar, {
   AlertSnackbarProps,
 } from "./AlertSnackbar";
 import { useAudio } from "./AudioHook";
+import Legend from "./Legend";
 import StyledEDCTDataGrid from "./StyledEDCTDataGrid";
-import { useImmer } from "use-immer";
 
 const logger = debug("edct:EDCTFlightPlans");
 
@@ -356,9 +357,9 @@ const VatsimEDCTFlightPlansViewOnly = () => {
               },
             }}
           />
+          <Legend />
         </Stack>
       </Box>
-
       <AlertSnackbar {...snackbar} onClose={handleSnackbarClose} />
     </>
   );

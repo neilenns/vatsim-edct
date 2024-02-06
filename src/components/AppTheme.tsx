@@ -4,6 +4,7 @@ import {
   Experimental_CssVarsProvider as CssVarsProvider,
   experimental_extendTheme as extendTheme,
 } from "@mui/material/styles";
+import GlobalAppStyles from "./GlobalAppStyles";
 
 interface Props {
   children: React.ReactNode;
@@ -51,6 +52,7 @@ const AppTheme = ({ children }: Props) => {
   return (
     <CssVarsProvider theme={theme}>
       <CssBaseline />
+      <GlobalAppStyles />
       {children}
     </CssVarsProvider>
   );
