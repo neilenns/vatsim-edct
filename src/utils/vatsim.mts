@@ -10,12 +10,12 @@ import {
 import _ from "lodash";
 import vatsimEDCT from "./vatsimEDCT.mts";
 
-type ProcessFlightPlansResult = {
+interface ProcessFlightPlansResult {
   flightPlans: vatsimEDCT[];
   hasNew: boolean;
   hasUpdates: boolean;
   hasEDCTUpdates: boolean;
-};
+}
 
 // Takes a new plan and an existing plan and merges them together. The only
 // property from the existing plan that is retained is the vatsimStatus.
@@ -116,7 +116,7 @@ export function processFlightPlans(
 
   return {
     flightPlans: [...existingEDCT, ...newPlans].sort((a, b) =>
-      a.callsign!.localeCompare(b.callsign!)
+      a.callsign.localeCompare(b.callsign)
     ),
     hasNew: newPlans.length > 0,
     hasUpdates: updatedPlansCount > 0,
