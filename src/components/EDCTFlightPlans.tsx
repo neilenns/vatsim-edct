@@ -1,11 +1,6 @@
 import { Stream as StreamIcon } from "@mui/icons-material";
 import { Box, IconButton, Stack, TextField } from "@mui/material";
-import {
-  GridCellParams,
-  GridColDef,
-  GridRowModel,
-  GridRowSelectionModel,
-} from "@mui/x-data-grid";
+import { GridCellParams, GridColDef, GridRowModel } from "@mui/x-data-grid";
 import clsx from "clsx";
 import debug from "debug";
 import { DateTime } from "luxon";
@@ -120,8 +115,6 @@ const VatsimEDCTFlightPlans = () => {
   const socketRef = useRef<Socket | null>(null);
   const [hasNew, setHasNew] = useState(false);
   const [hasUpdates, setHasUpdates] = useState(false);
-  const [rowSelectionModel, setRowSelectionModel] =
-    useState<GridRowSelectionModel>([]);
 
   const handleSnackbarClose: AlertSnackBarOnClose = () => setSnackbar(null);
 
@@ -351,20 +344,20 @@ const VatsimEDCTFlightPlans = () => {
 
       // If the string starts with + then the new EDCT time is the current time in UTC plus the requested minutes
       if (
-        newRow.shortEDCT.startsWith("+") &&
-        plusRegex.test(newRow.shortEDCT)
+        newEDCT.shortEDCT.startsWith("+") &&
+        plusRegex.test(newEDCT.shortEDCT)
       ) {
-        const minutes = parseInt(newRow.shortEDCT.substring(1));
+        const minutes = parseInt(newEDCT.shortEDCT.substring(1));
         newEDCTDateTime = DateTime.utc().plus({ minutes });
       }
       // Otherwise assume it is a time in the format "HH:mm"
-      else if (timeRegex.test(newRow.shortEDCT)) {
-        newEDCTDateTime = DateTime.fromFormat(newRow.shortEDCT, "HH:mm", {
+      else if (timeRegex.test(newEDCT.shortEDCT)) {
+        newEDCTDateTime = DateTime.fromFormat(newEDCT.shortEDCT, "HH:mm", {
           zone: "UTC",
         });
       } else {
         setSnackbar({
-          children: `Unable to updated EDCT: ${newRow.shortEDCT} is not a valid format.`,
+          children: `Unable to updated EDCT: ${newEDCT.shortEDCT} is not a valid format.`,
           severity: "error",
         });
         return originalRow;
@@ -373,16 +366,20 @@ const VatsimEDCTFlightPlans = () => {
       try {
         await updateEdct(newEDCT._id, newEDCTDateTime);
 
-        newEDCT.EDCT = newEDCTDateTime.toISOTime() ?? "";
+        // The GridRowModel isn't really a vatsimEDCT so it doesn't have a true EDCT setter.
+        // This means manually updating the shortEDCT and minutesToEDCT properties
+        newEDCT.EDCT = newEDCTDateTime.toISO() ?? "";
+        newEDCT.minutesToEDCT = vatsimEDCT.calculateMinutesToEDCT(newEDCT.EDCT);
+        newEDCT.shortEDCT = vatsimEDCT.calculateShortEDCT(newEDCT.EDCT);
 
         setSnackbar({
-          children: `EDCT for ${newRow.callsign ?? ""} updated to ${
+          children: `EDCT for ${newEDCT.callsign ?? ""} updated to ${
             newEDCTDateTime.toISOTime() ?? ""
           }`,
           severity: "info",
         });
 
-        return newRow;
+        return newEDCT;
       } catch (error) {
         const err = error as Error;
         setSnackbar({
@@ -437,13 +434,12 @@ const VatsimEDCTFlightPlans = () => {
           autoHeight
           rows={flightPlans}
           columns={columns}
-          processRowUpdate={(updatedRow) => saveEDCTToServer(updatedRow)}
+          disableRowSelectionOnClick
+          processRowUpdate={(updatedRow, originalRow) =>
+            saveEDCTToServer(updatedRow, originalRow)
+          }
           getRowId={(row) => (row as IVatsimFlightPlan)._id!}
           getRowClassName={getRowClassName}
-          onRowSelectionModelChange={(newRowSelectionModel) => {
-            setRowSelectionModel(newRowSelectionModel);
-          }}
-          rowSelectionModel={rowSelectionModel}
           initialState={{
             columns: {
               columnVisibilityModel: {

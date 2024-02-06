@@ -24,8 +24,8 @@ export default class vatsimEDCT implements IVatsimFlightPlan {
 
   set EDCT(value: string | undefined) {
     this._edct = value;
-    this.minutesToEDCT = vatsimEDCT.calculateMinutesToEDCT(this._edct);
-    this.shortEDCT = vatsimEDCT.calculateShortEDCT(this._edct);
+    this.minutesToEDCT = vatsimEDCT.calculateMinutesToEDCT(value);
+    this.shortEDCT = vatsimEDCT.calculateShortEDCT(value);
   }
 
   constructor(flightPlan?: IVatsimFlightPlan, initialState = ImportState.NEW) {
