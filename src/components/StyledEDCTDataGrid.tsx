@@ -23,9 +23,9 @@ const StyledEDCTDataGrid = styled(DataGrid)(({ theme }) => ({
     fontStyle: "italic",
   },
   "& .vatsim--new": {
-    color: theme.palette.warning.main,
+    color: theme.palette.success.main,
   },
-  "& .vatsim-updated": {
+  "& .vatsim--updated": {
     color: theme.palette.error.main,
   },
   "& .vatsim-imported": {
