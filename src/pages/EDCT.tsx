@@ -13,18 +13,29 @@ import {
   Typography,
   useColorScheme,
 } from "@mui/material";
+import debug from "debug";
 import { DateTime } from "luxon";
+import pluralize from "pluralize";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import AlertSnackbar, {
+  AlertSnackBarOnClose,
+  AlertSnackbarProps,
+} from "../components/AlertSnackbar";
 import VatsimEDCTFlightPlans from "../components/EDCTFlightPlans";
 import VatsimEDCTFlightPlansViewOnly from "../components/EDCTFlightPlansViewOnly";
 import useAppContext from "../context/AppContext";
+import socket from "../socket.mjs";
+
+const logger = debug("edct:EDCTPage");
 
 const Edct = () => {
   const viewOnly = useLocation().pathname === "/view";
   const { mode, setMode } = useColorScheme();
   const { muted, setMuted } = useAppContext();
   const [currentTime, setCurrentTime] = useState<DateTime>(DateTime.utc());
+  const [snackbar, setSnackbar] = useState<AlertSnackbarProps>(null);
+  const [isConnected, setIsConnected] = useState<boolean | null>(null);
 
   useEffect(() => {
     // Update current time every minute
@@ -45,6 +56,78 @@ const Edct = () => {
   const toggleMuted = () => {
     setMuted(!muted);
   };
+
+  const handleSnackbarClose: AlertSnackBarOnClose = () => {
+    setSnackbar(null);
+  };
+
+  // The main page takes care of basic socket connection states and reporting
+  // any errors that might be returned from the socket. This frees
+  // the two sub pages from all the code duplication: they only handle
+  // the events related to the specific data they want to retrieve.
+  useEffect(() => {
+    socket.on("connect", () => {
+      setIsConnected(true);
+    });
+
+    socket.on("disconnect", () => {
+      logger("Disconnected from VATSIM updates");
+      setIsConnected(false);
+    });
+
+    // Note the use of .io here, to get the manager. reconnect_error fires from
+    // the manager, not the socket. Super annoying.
+    socket.io.on("reconnect_error", (error: Error) => {
+      logger(`Error reconnecting to VATSIM updates: ${error.message}`);
+      setSnackbar({
+        children: `Unable to reconnect to server.`,
+        severity: "error",
+      });
+      setIsConnected(null); // null to avoid playing the disconnect sound.
+    });
+
+    socket.on("airportNotFound", (airportCodes: string[]) => {
+      const message = `${pluralize(
+        "Airport",
+        airportCodes.length
+      )} ${airportCodes.join(", ")} not found`;
+      logger(message);
+      setSnackbar({
+        children: message,
+        severity: "warning",
+      });
+      socket.disconnect();
+      setIsConnected(false);
+    });
+
+    socket.on("insecureAirportCode", (airportCodes: string[]) => {
+      const message = `${pluralize(
+        "Airport",
+        airportCodes.length
+      )} ${airportCodes.join(", ")} not valid`;
+      logger(message);
+      setSnackbar({
+        children: message,
+        severity: "error",
+      });
+      socket.disconnect();
+      setIsConnected(false);
+    });
+
+    socket.on("connect_error", (error: Error) => {
+      logger(`Error connecting to VATSIM updates: ${error.message}`);
+      setSnackbar({
+        children: `Unable to connect for VATSIM updates: ${error.message}.`,
+        severity: "error",
+      });
+      setIsConnected(null); // null to avoid playing the disconnect sound.
+    });
+
+    // Make sure to disconnect when we are cleaned up
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
@@ -91,8 +174,12 @@ const Edct = () => {
         {viewOnly ? (
           <VatsimEDCTFlightPlansViewOnly />
         ) : (
-          <VatsimEDCTFlightPlans />
+          <VatsimEDCTFlightPlans
+            onSetSnackbar={setSnackbar}
+            isConnected={isConnected}
+          />
         )}
+        <AlertSnackbar {...snackbar} onClose={handleSnackbarClose} />
       </Box>
     </Box>
   );
