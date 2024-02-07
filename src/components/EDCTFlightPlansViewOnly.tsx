@@ -156,7 +156,7 @@ const VatsimEDCTFlightPlansViewOnly = ({
     else {
       socket.disconnect();
     }
-  }, [departureCodes, isConnected, setFlightPlans, socket]);
+  }, [departureCodes, isConnected, setFlightPlans, setSnackbar, socket]);
 
   useIdleTimer({
     timeout: 1000 * 60 * 60, // 60 minutes

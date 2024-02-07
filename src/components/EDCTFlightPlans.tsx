@@ -170,7 +170,14 @@ const VatsimEDCTFlightPlans = ({ isConnected }: VastimEDCTFlightPlansProps) => {
     else {
       socket.disconnect();
     }
-  }, [arrivalCodes, departureCodes, isConnected, setFlightPlans, socket]);
+  }, [
+    arrivalCodes,
+    departureCodes,
+    isConnected,
+    setFlightPlans,
+    setSnackbar,
+    socket,
+  ]);
 
   useIdleTimer({
     timeout: 1000 * 60 * 60, // 60 minutes
