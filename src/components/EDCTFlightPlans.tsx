@@ -134,7 +134,7 @@ const VatsimEDCTFlightPlans = ({ isConnected }: VastimEDCTFlightPlansProps) => {
       .join(",");
   };
 
-  const toggleVatsimConnection = () => {
+  const toggleVatsimConnection = useCallback(() => {
     if (departureCodes === "" || arrivalCodes === "") return;
 
     // Not currently connected so connect
@@ -164,7 +164,7 @@ const VatsimEDCTFlightPlans = ({ isConnected }: VastimEDCTFlightPlansProps) => {
     else {
       socket.disconnect();
     }
-  };
+  }, [arrivalCodes, departureCodes, isConnected, setFlightPlans, socket]);
 
   useIdleTimer({
     timeout: 1000 * 60 * 60, // 60 minutes
