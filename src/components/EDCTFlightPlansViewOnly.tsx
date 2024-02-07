@@ -127,7 +127,13 @@ const VatsimEDCTFlightPlansViewOnly = ({
   };
 
   const toggleVatsimConnection = useCallback(() => {
-    if (departureCodes === "") return;
+    if (departureCodes === "") {
+      setSnackbar({
+        children: `At least one departure code must be specified.`,
+        severity: `error`,
+      });
+      return;
+    }
 
     // Not currently connected so connect
     if (!isConnected) {

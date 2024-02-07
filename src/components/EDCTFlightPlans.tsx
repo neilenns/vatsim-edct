@@ -135,7 +135,13 @@ const VatsimEDCTFlightPlans = ({ isConnected }: VastimEDCTFlightPlansProps) => {
   };
 
   const toggleVatsimConnection = useCallback(() => {
-    if (departureCodes === "" || arrivalCodes === "") return;
+    if (departureCodes === "" || arrivalCodes === "") {
+      setSnackbar({
+        children: `Departure and arrival codes must be specified.`,
+        severity: `error`,
+      });
+      return;
+    }
 
     // Not currently connected so connect
     if (!isConnected) {
