@@ -4,7 +4,7 @@ import http from "../utils/http.mts";
 
 export async function updateEdct(
   _id: string | undefined,
-  EDCT: DateTime
+  EDCT: DateTime | null
 ): Promise<IVatsimFlightPlan | undefined> {
   if (!_id) {
     return;
@@ -12,7 +12,7 @@ export async function updateEdct(
 
   const response = await http.put(`vatsim/flightPlans/edct`, {
     _id,
-    EDCT: EDCT.toISO(),
+    EDCT: EDCT?.toISO() ?? null,
   });
 
   if (response.status === 200) {
@@ -20,6 +20,6 @@ export async function updateEdct(
   } else if (response.status === 401) {
     throw new Error(`Unauthorized`);
   } else {
-    throw new Error(`${response.statusText}`);
+    throw new Error(response.statusText);
   }
 }

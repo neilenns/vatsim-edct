@@ -339,9 +339,9 @@ const VatsimEDCTFlightPlans = () => {
     async (newRow: GridRowModel, originalRow: GridRowModel) => {
       const newEDCT = newRow as vatsimEDCT;
 
-      if (!newEDCT._id || !newEDCT.shortEDCT) {
+      if (!newEDCT._id) {
         setSnackbar({
-          children: `Unable to update EDCT: _id or EDCT is undefined.`,
+          children: `Unable to update EDCT: _id is undefined.`,
           severity: "error",
         });
         return originalRow;
@@ -350,10 +350,14 @@ const VatsimEDCTFlightPlans = () => {
       const timeRegex = /^(\d{2}:\d{2}$)/; // hh:mm
       const plusRegex = /^\+(\d+)$/; // +time
 
-      let newEDCTDateTime: DateTime;
+      let newEDCTDateTime: DateTime | null;
 
+      // An empty shortEDCT means no EDCT should be assigned to the flight
+      if (newEDCT.shortEDCT === undefined || newEDCT.shortEDCT.trim() === "") {
+        newEDCTDateTime = null;
+      }
       // If the string starts with + then the new EDCT time is the current time in UTC plus the requested minutes
-      if (
+      else if (
         newEDCT.shortEDCT.startsWith("+") &&
         plusRegex.test(newEDCT.shortEDCT)
       ) {
@@ -378,13 +382,13 @@ const VatsimEDCTFlightPlans = () => {
 
         // The GridRowModel isn't really a vatsimEDCT so it doesn't have a true EDCT setter.
         // This means manually updating the shortEDCT and minutesToEDCT properties
-        newEDCT.EDCT = newEDCTDateTime.toISO() ?? "";
+        newEDCT.EDCT = newEDCTDateTime?.toISO() ?? "";
         newEDCT.minutesToEDCT = vatsimEDCT.calculateMinutesToEDCT(newEDCT.EDCT);
         newEDCT.shortEDCT = vatsimEDCT.calculateShortEDCT(newEDCT.EDCT);
 
         setSnackbar({
           children: `EDCT for ${newEDCT.callsign} updated to ${
-            newEDCTDateTime.toISOTime() ?? ""
+            newEDCTDateTime?.toISOTime() ?? " no EDCT"
           }`,
           severity: "info",
         });
