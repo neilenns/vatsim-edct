@@ -53,11 +53,13 @@ const VatsimEDCTFlightPlans = ({
   const [hasNew, setHasNew] = useState(false);
   const [hasUpdates, setHasUpdates] = useState(false);
 
+  // Set the window title
   useEffect(() => {
-    // The new entry sound plays when:
-    // 1. Any new entry is received
-    // 2. Non EDCT updates are applied and the user is a TMU
-    // 3. EDCT updates are applied and the user is a viewer
+    document.title = `EDCT planning`;
+  }, []);
+
+  // Set up playing sounds when new or updated plans are received
+  useEffect(() => {
     if (hasNew || hasUpdates) {
       bellPlayer.play();
       setHasNew(false);
@@ -65,6 +67,8 @@ const VatsimEDCTFlightPlans = ({
     }
   }, [hasNew, hasUpdates, bellPlayer]);
 
+  // This method of handling socket events comes from
+  // https://dev.to/bravemaster619/how-to-use-socket-io-client-correctly-in-react-app-o65
   const onConnect = useCallback(() => {
     logger("Connected for VATSIM EDCT flight plan updates");
 
@@ -78,6 +82,7 @@ const VatsimEDCTFlightPlans = ({
   const onVatsimEDCTupdate = useCallback(
     (vatsimPlans: IVatsimFlightPlan[]) => {
       logger("Received VATSIM EDCT flight plans");
+      console.log("Received flight plans");
 
       // This just feels like a giant hack to get around the closure issues of useEffect and
       // useState not having flightPlans be the current value every time the update event is received.
@@ -90,17 +95,22 @@ const VatsimEDCTFlightPlans = ({
     [setFlightPlans]
   );
 
+  // Register for connect events
   useEffect(() => {
-    document.title = `EDCT planning`;
-
     socket.on("connect", onConnect);
-    socket.on("vatsimEDCTupdate", onVatsimEDCTupdate);
 
     return () => {
       socket.off("connect", onConnect);
+    };
+  }, [onConnect]);
+
+  // Register for updated data events
+  useEffect(() => {
+    socket.on("vatsimEDCTupdate", onVatsimEDCTupdate);
+    return () => {
       socket.off("vatsimEDCTupdate", onVatsimEDCTupdate);
     };
-  }, [onConnect, onVatsimEDCTupdate]);
+  }, [onVatsimEDCTupdate]);
 
   const onIdle = () => {
     if (isConnected) {

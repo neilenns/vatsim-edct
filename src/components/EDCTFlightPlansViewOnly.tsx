@@ -48,6 +48,22 @@ const VatsimEDCTFlightPlansViewOnly = ({
   const [hasNew, setHasNew] = useState(false);
   const [hasEDCTUpdates, setHasEDCTUpdates] = useState(false);
 
+  // Set the window title
+  useEffect(() => {
+    document.title = `EDCT assignments`;
+  }, []);
+
+  // Play bell sounds on new or updated flight plans
+  useEffect(() => {
+    if (hasNew || hasEDCTUpdates) {
+      bellPlayer.play();
+      setHasNew(false);
+      setHasEDCTUpdates(false);
+    }
+  }, [hasNew, bellPlayer, hasEDCTUpdates]);
+
+  // This method of handling socket events comes from
+  // https://dev.to/bravemaster619/how-to-use-socket-io-client-correctly-in-react-app-o65
   const onConnect = useCallback(() => {
     logger("Connected for VATSIM EDCT flight plan updates");
 
@@ -68,25 +84,23 @@ const VatsimEDCTFlightPlansViewOnly = ({
     [setFlightPlans]
   );
 
+  // Register for socket connection events
   useEffect(() => {
-    if (hasNew || hasEDCTUpdates) {
-      bellPlayer.play();
-      setHasNew(false);
-      setHasEDCTUpdates(false);
-    }
-  }, [hasNew, bellPlayer, hasEDCTUpdates]);
-
-  useEffect(() => {
-    document.title = `EDCT assignments`;
-
     socket.on("connect", onConnect);
-    socket.on("vatsimEDCTViewOnlyUpdate", onVatsimEDCTViewOnlyUpdate);
 
     return () => {
       socket.off("connect", onConnect);
+    };
+  }, [onConnect]);
+
+  // Register for updated data events
+  useEffect(() => {
+    socket.on("vatsimEDCTViewOnlyUpdate", onVatsimEDCTViewOnlyUpdate);
+
+    return () => {
       socket.off("vatsimEDCTViewOnlyUpdate", onVatsimEDCTViewOnlyUpdate);
     };
-  }, [onVatsimEDCTViewOnlyUpdate, onConnect]);
+  }, [onVatsimEDCTViewOnlyUpdate]);
 
   const onIdle = () => {
     if (isConnected) {
