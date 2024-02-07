@@ -65,10 +65,18 @@ const VatsimEDCTFlightPlans = ({
     }
   }, [hasNew, hasUpdates, bellPlayer]);
 
-  useEffect(() => {
-    document.title = `EDCT planning`;
+  const onConnect = useCallback(() => {
+    logger("Connected for VATSIM EDCT flight plan updates");
 
-    socket.on("vatsimEDCTupdate", (vatsimPlans: IVatsimFlightPlan[]) => {
+    socket.emit(
+      "watchEDCT",
+      departureCodesRef.current.split(","),
+      arrivalCodesCodesRef.current.split(",")
+    );
+  }, []);
+
+  const onVatsimEDCTupdate = useCallback(
+    (vatsimPlans: IVatsimFlightPlan[]) => {
       logger("Received VATSIM EDCT flight plans");
 
       // This just feels like a giant hack to get around the closure issues of useEffect and
@@ -78,18 +86,21 @@ const VatsimEDCTFlightPlans = ({
         setHasNew(result.hasNew);
         setHasUpdates(result.hasUpdates);
       });
-    });
+    },
+    [setFlightPlans]
+  );
 
-    socket.on("connect", () => {
-      logger("Connected for VATSIM EDCT flight plan updates");
+  useEffect(() => {
+    document.title = `EDCT planning`;
 
-      socket.emit(
-        "watchEDCT",
-        departureCodesRef.current.split(","),
-        arrivalCodesCodesRef.current.split(",")
-      );
-    });
-  }, [setFlightPlans]);
+    socket.on("connect", onConnect);
+    socket.on("vatsimEDCTupdate", onVatsimEDCTupdate);
+
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("vatsimEDCTupdate", onVatsimEDCTupdate);
+    };
+  }, [onConnect, onVatsimEDCTupdate]);
 
   const onIdle = () => {
     if (isConnected) {

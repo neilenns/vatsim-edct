@@ -48,6 +48,26 @@ const VatsimEDCTFlightPlansViewOnly = ({
   const [hasNew, setHasNew] = useState(false);
   const [hasEDCTUpdates, setHasEDCTUpdates] = useState(false);
 
+  const onConnect = useCallback(() => {
+    logger("Connected for VATSIM EDCT flight plan updates");
+
+    socket.emit("watchEDCTViewOnly", departureCodesRef.current.split(","));
+  }, []);
+
+  const onVatsimEDCTViewOnlyUpdate = useCallback(
+    (vatsimPlans: IVatsimFlightPlan[]) => {
+      logger("Received VATSIM EDCT flight plans");
+      console.log("Received VATSIM EDCT flight plans");
+
+      setFlightPlans((draft) => {
+        const result = processIncomingEDCT(draft, vatsimPlans);
+        setHasNew(result.hasNew);
+        setHasEDCTUpdates(result.hasEDCTUpdates);
+      });
+    },
+    [setFlightPlans]
+  );
+
   useEffect(() => {
     if (hasNew || hasEDCTUpdates) {
       bellPlayer.play();
@@ -59,25 +79,14 @@ const VatsimEDCTFlightPlansViewOnly = ({
   useEffect(() => {
     document.title = `EDCT assignments`;
 
-    socket.on(
-      "vatsimEDCTViewOnlyUpdate",
-      (vatsimPlans: IVatsimFlightPlan[]) => {
-        logger("Received VATSIM EDCT flight plans");
+    socket.on("connect", onConnect);
+    socket.on("vatsimEDCTViewOnlyUpdate", onVatsimEDCTViewOnlyUpdate);
 
-        setFlightPlans((draft) => {
-          const result = processIncomingEDCT(draft, vatsimPlans);
-          setHasNew(result.hasNew);
-          setHasEDCTUpdates(result.hasEDCTUpdates);
-        });
-      }
-    );
-
-    socket.on("connect", () => {
-      logger("Connected for VATSIM EDCT flight plan updates");
-
-      socket.emit("watchEDCTViewOnly", departureCodesRef.current.split(","));
-    });
-  }, [setFlightPlans]);
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("vatsimEDCTViewOnlyUpdate", onVatsimEDCTViewOnlyUpdate);
+    };
+  }, [onVatsimEDCTViewOnlyUpdate, onConnect]);
 
   const onIdle = () => {
     if (isConnected) {
