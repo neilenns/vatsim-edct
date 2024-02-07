@@ -1,8 +1,8 @@
 import { useCallback, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
+import SocketProvider from "../context/SocketContext";
 import ILoginResponse from "../interfaces/ILoginResponse.mts";
 import http from "../utils/http.mts";
-import { useNavigate } from "react-router-dom";
 
 const App = () => {
   const navigate = useNavigate();
@@ -43,7 +43,11 @@ const App = () => {
     };
   }, [syncLogout]);
 
-  return <Outlet />;
+  return (
+    <SocketProvider>
+      <Outlet />
+    </SocketProvider>
+  );
 };
 
 export default App;
