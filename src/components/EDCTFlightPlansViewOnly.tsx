@@ -1,10 +1,9 @@
 import { Stream as StreamIcon } from "@mui/icons-material";
 import { Box, IconButton, Stack, TextField } from "@mui/material";
-import { GridCellParams, GridColDef } from "@mui/x-data-grid";
-import clsx from "clsx";
+import { GridCellParams } from "@mui/x-data-grid";
 import debug from "debug";
 import pluralize from "pluralize";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useIdleTimer } from "react-idle-timer";
 import socketIOClient, { Socket } from "socket.io-client";
 import { useImmer } from "use-immer";
@@ -13,7 +12,6 @@ import {
   IVatsimFlightPlan,
   ImportState,
 } from "../interfaces/IVatsimFlightPlan.mts";
-import { formatDateTime, getRowClassName } from "../utils/dataGrid.mts";
 import { processIncomingEDCT } from "../utils/vatsim.mts";
 import vatsimEDCT from "../utils/vatsimEDCT.mts";
 import AlertSnackbar, {
@@ -22,72 +20,9 @@ import AlertSnackbar, {
 } from "./AlertSnackbar";
 import { useAudio } from "./AudioHook";
 import Legend from "./Legend";
-import StyledEDCTDataGrid from "./StyledEDCTDataGrid";
+import EDCTDataGrid from "./EDCTDataGrid";
 
 const logger = debug("edct:EDCTFlightPlans");
-
-const columns: GridColDef[] = [
-  { field: "_id" },
-  {
-    field: "callsign",
-    headerName: "Callsign",
-    width: 150,
-    editable: false,
-    type: "string",
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    cellClassName: (params: GridCellParams<any, string>) => {
-      const flightPlan = params.row as vatsimEDCT;
-
-      return clsx({
-        "vatsim--callsign": true,
-        "vatsim--new": flightPlan.importState === ImportState.NEW,
-        "vatsim--updated": flightPlan.importState === ImportState.UPDATED,
-        "vatsim--imported": flightPlan.importState === ImportState.IMPORTED,
-      });
-    },
-  },
-  {
-    field: "departure",
-    headerName: "Departure airport",
-    align: "center",
-    headerAlign: "center",
-    width: 175,
-    editable: false,
-  },
-  {
-    field: "arrival",
-    headerName: "Arrival airport",
-    align: "center",
-    headerAlign: "center",
-    width: 175,
-    editable: false,
-  },
-  {
-    field: "departureTime",
-    headerName: "Filed departure",
-    align: "center",
-    headerAlign: "center",
-    width: 175,
-    editable: false,
-    valueFormatter: formatDateTime,
-  },
-  {
-    field: "shortEDCT",
-    headerName: "EDCT",
-    align: "center",
-    headerAlign: "center",
-    width: 100,
-    editable: false,
-  },
-  {
-    field: "minutesToEDCT",
-    headerName: "To EDCT",
-    align: "center",
-    headerAlign: "center",
-    width: 100,
-    editable: false,
-  },
-];
 
 const VatsimEDCTFlightPlansViewOnly = () => {
   const bellPlayer = useAudio("/bell.mp3");
@@ -295,23 +230,24 @@ const VatsimEDCTFlightPlansViewOnly = () => {
     onPrompt,
   });
 
-  const toggleFlightPlanState = (params: GridCellParams) => {
-    if (params.field !== "callsign") {
-      return;
-    }
+  const toggleFlightPlanState = useCallback(
+    (params: GridCellParams) => {
+      if (params.field !== "callsign") {
+        return;
+      }
 
-    const planIndex = flightPlans.findIndex(
-      (plan) => plan.callsign === params.value
-    );
-    if (planIndex !== -1) {
-      const updatedFlightPlans = [...flightPlans];
+      setFlightPlans((draft) => {
+        const index = draft.findIndex((plan) => plan.callsign === params.value);
 
-      updatedFlightPlans[planIndex].importState !== ImportState.IMPORTED
-        ? (updatedFlightPlans[planIndex].importState = ImportState.IMPORTED)
-        : (updatedFlightPlans[planIndex].importState = ImportState.NEW);
-      setFlightPlans(updatedFlightPlans);
-    }
-  };
+        if (index !== -1) {
+          draft[index].importState !== ImportState.IMPORTED
+            ? (draft[index].importState = ImportState.IMPORTED)
+            : (draft[index].importState = ImportState.NEW);
+        }
+      });
+    },
+    [setFlightPlans]
+  );
 
   return (
     <>
@@ -336,26 +272,10 @@ const VatsimEDCTFlightPlansViewOnly = () => {
           </Stack>
         </form>
         <Stack sx={{ mt: 2, ml: 1 }} spacing={2}>
-          <StyledEDCTDataGrid
-            sx={{
-              "&.MuiDataGrid-root .MuiDataGrid-cell:focus-within": {
-                outline: "none !important",
-              },
-            }}
-            onCellClick={toggleFlightPlanState}
-            autoHeight
-            rows={flightPlans}
-            columns={columns}
-            disableRowSelectionOnClick
-            getRowId={(row) => (row as IVatsimFlightPlan)._id}
-            getRowClassName={getRowClassName}
-            initialState={{
-              columns: {
-                columnVisibilityModel: {
-                  _id: false,
-                },
-              },
-            }}
+          <EDCTDataGrid
+            onToggleFlightPlanState={toggleFlightPlanState}
+            flightPlans={flightPlans}
+            onSetSnackbar={setSnackbar}
           />
           <Legend />
         </Stack>
