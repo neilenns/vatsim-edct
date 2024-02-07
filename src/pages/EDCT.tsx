@@ -24,8 +24,7 @@ import AlertSnackbar, {
 } from "../components/AlertSnackbar";
 import VatsimEDCTFlightPlans from "../components/EDCTFlightPlans";
 import VatsimEDCTFlightPlansViewOnly from "../components/EDCTFlightPlansViewOnly";
-import useAppContext from "../context/AppContext";
-import useSocket from "../hooks/useSocket";
+import { useAppContext } from "../hooks/useAppContext.mts";
 
 const logger = debug("edct:EDCTPage");
 
@@ -36,7 +35,7 @@ const Edct = () => {
   const [currentTime, setCurrentTime] = useState<DateTime>(DateTime.utc());
   const [snackbar, setSnackbar] = useState<AlertSnackbarProps>(null);
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
-  const socket = useSocket();
+  const { socket } = useAppContext();
 
   useEffect(() => {
     // Update current time every minute
