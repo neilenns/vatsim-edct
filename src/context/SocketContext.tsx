@@ -1,18 +1,28 @@
-import { createContext, useContext } from "react";
-import { Socket } from "socket.io-client";
+import { createContext, useState } from "react";
+import socketIOClient, { Socket } from "socket.io-client";
+import { ENV } from "../env.mjs";
 
-const SocketContext = createContext<Socket | null>(null);
+// From https://blog.logrocket.com/how-to-use-react-context-typescript/
 
-export const useSocketContext = () => {
-  const socket = useContext(SocketContext);
+interface Props {
+  children: React.ReactNode;
+}
 
-  if (!socket) {
-    throw new Error(
-      "useSocketContext has to be used within <SocketContext.Provider>"
-    );
-  }
+export const SocketContext = createContext<Socket | null>(null);
 
-  return socket;
+const SocketProvider = ({ children }: Props) => {
+  const [socket] = useState(
+    socketIOClient(ENV.VITE_SERVER_URL, {
+      autoConnect: false,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      auth: { token: ENV.VITE_API_KEY },
+    })
+  );
+
+  return (
+    <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
+  );
 };
 
-export default SocketContext;
+export default SocketProvider;

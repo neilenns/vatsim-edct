@@ -12,7 +12,7 @@ import {
 } from "react";
 import { useIdleTimer } from "react-idle-timer";
 import { useImmer } from "use-immer";
-import { useSocketContext } from "../context/SocketContext";
+import useSocket from "../hooks/useSocket";
 import {
   IVatsimFlightPlan,
   ImportState,
@@ -34,7 +34,7 @@ const VatsimEDCTFlightPlans = ({
   isConnected,
   onSetSnackbar,
 }: VastimEDCTFlightPlansProps) => {
-  const socket = useSocketContext();
+  const socket = useSocket();
   const bellPlayer = useAudio("/bell.mp3");
   const [flightPlans, setFlightPlans] = useImmer<vatsimEDCT[]>([]);
   const [departureCodes, setDepartureCodes] = useState(
