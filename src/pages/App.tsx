@@ -1,10 +1,21 @@
-import { useCallback, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
+import socketIOClient, { Socket } from "socket.io-client";
+import SocketContext from "../context/SocketContext";
+import { ENV } from "../env.mjs";
 import ILoginResponse from "../interfaces/ILoginResponse.mts";
 import http from "../utils/http.mts";
-import { useNavigate } from "react-router-dom";
 
 const App = () => {
+  const [socket] = useState<Socket>(
+    socketIOClient(ENV.VITE_SERVER_URL, {
+      autoConnect: false,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      auth: { token: ENV.VITE_API_KEY },
+    })
+  );
+
   const navigate = useNavigate();
 
   const verifyUser = useCallback(() => {
@@ -43,7 +54,11 @@ const App = () => {
     };
   }, [syncLogout]);
 
-  return <Outlet />;
+  return (
+    <SocketContext.Provider value={socket}>
+      <Outlet />
+    </SocketContext.Provider>
+  );
 };
 
 export default App;

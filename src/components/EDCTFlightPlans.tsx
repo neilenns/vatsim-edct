@@ -12,11 +12,11 @@ import {
 } from "react";
 import { useIdleTimer } from "react-idle-timer";
 import { useImmer } from "use-immer";
+import { useSocketContext } from "../context/SocketContext";
 import {
   IVatsimFlightPlan,
   ImportState,
 } from "../interfaces/IVatsimFlightPlan.mts";
-import socket from "../socket.mjs";
 import { processIncomingEDCT } from "../utils/vatsim.mts";
 import vatsimEDCT from "../utils/vatsimEDCT.mts";
 import { AlertSnackbarProps } from "./AlertSnackbar";
@@ -34,6 +34,7 @@ const VatsimEDCTFlightPlans = ({
   isConnected,
   onSetSnackbar,
 }: VastimEDCTFlightPlansProps) => {
+  const socket = useSocketContext();
   const bellPlayer = useAudio("/bell.mp3");
   const [flightPlans, setFlightPlans] = useImmer<vatsimEDCT[]>([]);
   const [departureCodes, setDepartureCodes] = useState(
@@ -77,7 +78,7 @@ const VatsimEDCTFlightPlans = ({
       departureCodesRef.current.split(","),
       arrivalCodesCodesRef.current.split(",")
     );
-  }, []);
+  }, [socket]);
 
   const onVatsimEDCTupdate = useCallback(
     (vatsimPlans: IVatsimFlightPlan[]) => {
@@ -102,7 +103,7 @@ const VatsimEDCTFlightPlans = ({
     return () => {
       socket.off("connect", onConnect);
     };
-  }, [onConnect]);
+  }, [socket, onConnect]);
 
   // Register for updated data events
   useEffect(() => {
@@ -110,7 +111,7 @@ const VatsimEDCTFlightPlans = ({
     return () => {
       socket.off("vatsimEDCTupdate", onVatsimEDCTupdate);
     };
-  }, [onVatsimEDCTupdate]);
+  }, [socket, onVatsimEDCTupdate]);
 
   const onIdle = () => {
     if (isConnected) {
