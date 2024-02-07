@@ -10,6 +10,7 @@ import {
 import { IUser } from "../interfaces/IUser.mts";
 import socketIOClient from "socket.io-client";
 import { ENV } from "../env.mts";
+import { AlertSnackbarProps } from "../components/AlertSnackbar";
 
 // This method of setting up app context in TypeScript comes from
 // https://gist.github.com/JLarky/5a1642abd8741f2683a817f36dd48e78#file-darkcontextminimal-tsx
@@ -18,6 +19,7 @@ export type SetUserFunction = Dispatch<
 >;
 
 const useProviderValue = () => {
+  const [snackbar, setSnackbar] = useState<AlertSnackbarProps>(null);
   const [muted, setMuted] = useState(localStorage.getItem("muted") === "true"); // Results in a default vaue of false
   const [autoHideImported, setAutoHideImported] = useState(
     localStorage.getItem("autoHideImported") === "true" // Results in a default vaue of false
@@ -65,8 +67,17 @@ const useProviderValue = () => {
       streamingMode,
       setStreamingMode,
       socket,
+      snackbar,
+      setSnackbar,
     }),
-    [muted, autoHideImported, hideInformational, streamingMode, socket]
+    [
+      muted,
+      autoHideImported,
+      hideInformational,
+      streamingMode,
+      socket,
+      snackbar,
+    ]
   );
 };
 

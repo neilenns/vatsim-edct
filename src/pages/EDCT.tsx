@@ -20,7 +20,6 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import AlertSnackbar, {
   AlertSnackBarOnClose,
-  AlertSnackbarProps,
 } from "../components/AlertSnackbar";
 import VatsimEDCTFlightPlans from "../components/EDCTFlightPlans";
 import VatsimEDCTFlightPlansViewOnly from "../components/EDCTFlightPlansViewOnly";
@@ -33,9 +32,8 @@ const Edct = () => {
   const { mode, setMode } = useColorScheme();
   const { muted, setMuted } = useAppContext();
   const [currentTime, setCurrentTime] = useState<DateTime>(DateTime.utc());
-  const [snackbar, setSnackbar] = useState<AlertSnackbarProps>(null);
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
-  const { socket } = useAppContext();
+  const { socket, snackbar, setSnackbar } = useAppContext();
 
   useEffect(() => {
     // Update current time every minute
@@ -127,7 +125,7 @@ const Edct = () => {
     return () => {
       socket.disconnect();
     };
-  }, [socket]);
+  }, [socket, setSnackbar]);
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
@@ -172,15 +170,9 @@ const Edct = () => {
       {/* Core page */}
       <Box sx={{ display: "flex", flex: 1 }}>
         {viewOnly ? (
-          <VatsimEDCTFlightPlansViewOnly
-            onSetSnackbar={setSnackbar}
-            isConnected={isConnected}
-          />
+          <VatsimEDCTFlightPlansViewOnly isConnected={isConnected} />
         ) : (
-          <VatsimEDCTFlightPlans
-            onSetSnackbar={setSnackbar}
-            isConnected={isConnected}
-          />
+          <VatsimEDCTFlightPlans isConnected={isConnected} />
         )}
         <AlertSnackbar {...snackbar} onClose={handleSnackbarClose} />
       </Box>

@@ -6,6 +6,7 @@ import {
 } from "@mui/material";
 import { SyntheticEvent, useEffect, useState } from "react";
 import { ENV } from "../env.mts";
+import { useAppContext } from "../hooks/useAppContext.mts";
 
 export type AlertSnackBarOnClose = (reason: SnackbarCloseReason) => undefined;
 
@@ -17,7 +18,7 @@ export type AlertSnackbarProps = {
 
 const AlertSnackbar = (props: AlertSnackbarProps) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [snackbar, setSnackbar] = useState<AlertSnackbarProps>(null);
+  const { snackbar, setSnackbar } = useAppContext();
 
   useEffect(() => {
     setSnackbar(props);
@@ -26,7 +27,7 @@ const AlertSnackbar = (props: AlertSnackbarProps) => {
     } else {
       setIsOpen(true);
     }
-  }, [props]);
+  }, [props, setSnackbar]);
 
   const handleClose = (
     _: Event | SyntheticEvent<unknown>,

@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useCallback } from "react";
+import { useCallback } from "react";
 import StyledDataGrid from "./StyledDataGrid";
 import {
   GridCellEditStartParams,
@@ -16,12 +16,11 @@ import { updateEdct } from "../services/edct.mts";
 import { formatDateTime, getRowClassName } from "../utils/dataGrid.mts";
 import vatsimEDCT from "../utils/vatsimEDCT.mts";
 import clsx from "clsx";
-import { AlertSnackbarProps } from "./AlertSnackbar";
+import { useAppContext } from "../hooks/useAppContext.mts";
 
 interface EDCTDataGridProps {
   flightPlans: vatsimEDCT[];
   onToggleFlightPlanState: (params: GridCellParams) => void;
-  onSetSnackbar: Dispatch<SetStateAction<AlertSnackbarProps>>;
   allowEdit?: boolean;
 }
 
@@ -89,17 +88,18 @@ const columns: GridColDef[] = [
 ];
 
 const EDCTDataGrid = ({
-  onSetSnackbar,
   onToggleFlightPlanState,
   flightPlans,
   allowEdit,
 }: EDCTDataGridProps) => {
+  const { setSnackbar } = useAppContext();
+
   const saveEDCTToServer = useCallback(
     async (newRow: GridRowModel, originalRow: GridRowModel) => {
       const newEDCT = newRow as vatsimEDCT;
 
       if (!newEDCT._id) {
-        onSetSnackbar({
+        setSnackbar({
           children: `Unable to update EDCT: _id is undefined.`,
           severity: "error",
         });
@@ -129,7 +129,7 @@ const EDCTDataGrid = ({
           zone: "UTC",
         });
       } else {
-        onSetSnackbar({
+        setSnackbar({
           children: `Unable to updated EDCT: ${newEDCT.shortEDCT} is not a valid format.`,
           severity: "error",
         });
@@ -145,7 +145,7 @@ const EDCTDataGrid = ({
         newEDCT.minutesToEDCT = vatsimEDCT.calculateMinutesToEDCT(newEDCT.EDCT);
         newEDCT.shortEDCT = vatsimEDCT.calculateShortEDCT(newEDCT.EDCT);
 
-        onSetSnackbar({
+        setSnackbar({
           children: `EDCT for ${newEDCT.callsign} updated to ${
             newEDCTDateTime?.toISOTime() ?? " no EDCT"
           }`,
@@ -155,14 +155,14 @@ const EDCTDataGrid = ({
         return newEDCT;
       } catch (error) {
         const err = error as Error;
-        onSetSnackbar({
+        setSnackbar({
           children: `Unable to update EDCT for ${newEDCT.callsign}: ${err.message}`,
           severity: "error",
         });
         return originalRow;
       }
     },
-    [onSetSnackbar]
+    [setSnackbar]
   );
 
   return (

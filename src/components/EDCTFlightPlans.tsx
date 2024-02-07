@@ -2,14 +2,7 @@ import { Stream as StreamIcon } from "@mui/icons-material";
 import { Box, IconButton, Stack, TextField } from "@mui/material";
 import { GridCellParams } from "@mui/x-data-grid";
 import debug from "debug";
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useIdleTimer } from "react-idle-timer";
 import { useImmer } from "use-immer";
 import {
@@ -18,7 +11,6 @@ import {
 } from "../interfaces/IVatsimFlightPlan.mts";
 import { processIncomingEDCT } from "../utils/vatsim.mts";
 import vatsimEDCT from "../utils/vatsimEDCT.mts";
-import { AlertSnackbarProps } from "./AlertSnackbar";
 import { useAudio } from "./AudioHook";
 import EDCTDataGrid from "./EDCTDataGrid";
 import Legend from "./Legend";
@@ -28,13 +20,9 @@ const logger = debug("edct:EDCTFlightPlans");
 
 interface VastimEDCTFlightPlansProps {
   isConnected: boolean | null;
-  onSetSnackbar: Dispatch<SetStateAction<AlertSnackbarProps>>;
 }
-const VatsimEDCTFlightPlans = ({
-  isConnected,
-  onSetSnackbar,
-}: VastimEDCTFlightPlansProps) => {
-  const { socket } = useAppContext();
+const VatsimEDCTFlightPlans = ({ isConnected }: VastimEDCTFlightPlansProps) => {
+  const { socket, setSnackbar } = useAppContext();
   const bellPlayer = useAudio("/bell.mp3");
   const [flightPlans, setFlightPlans] = useImmer<vatsimEDCT[]>([]);
   const [departureCodes, setDepartureCodes] = useState(
@@ -124,7 +112,7 @@ const VatsimEDCTFlightPlans = ({
     if (isConnected) {
       const message = `Inactivity detected, auto-refresh will stop in five minutes.`;
       logger(message);
-      onSetSnackbar({
+      setSnackbar({
         children: message,
         severity: "warning",
       });
@@ -234,7 +222,6 @@ const VatsimEDCTFlightPlans = ({
           <EDCTDataGrid
             onToggleFlightPlanState={toggleFlightPlanState}
             flightPlans={flightPlans}
-            onSetSnackbar={onSetSnackbar}
             allowEdit
           />
           <Legend />
