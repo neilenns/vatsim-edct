@@ -1,9 +1,7 @@
 import { Stream as StreamIcon } from "@mui/icons-material";
 import { Box, IconButton, Stack, TextField } from "@mui/material";
-import { GridCellParams, GridColDef, GridRowModel } from "@mui/x-data-grid";
-import clsx from "clsx";
+import { GridCellParams } from "@mui/x-data-grid";
 import debug from "debug";
-import { DateTime } from "luxon";
 import pluralize from "pluralize";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useIdleTimer } from "react-idle-timer";
@@ -14,8 +12,6 @@ import {
   IVatsimFlightPlan,
   ImportState,
 } from "../interfaces/IVatsimFlightPlan.mts";
-import { updateEdct } from "../services/edct.mts";
-import { formatDateTime, getRowClassName } from "../utils/dataGrid.mts";
 import { processIncomingEDCT } from "../utils/vatsim.mts";
 import vatsimEDCT from "../utils/vatsimEDCT.mts";
 import AlertSnackbar, {
@@ -24,72 +20,9 @@ import AlertSnackbar, {
 } from "./AlertSnackbar";
 import { useAudio } from "./AudioHook";
 import Legend from "./Legend";
-import StyledEDCTDataGrid from "./StyledEDCTDataGrid";
+import EDCTDataGrid from "./EDCTDataGrid";
 
 const logger = debug("edct:EDCTFlightPlans");
-
-const columns: GridColDef[] = [
-  { field: "_id" },
-  {
-    field: "callsign",
-    headerName: "Callsign",
-    width: 150,
-    editable: false,
-    type: "string",
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    cellClassName: (params: GridCellParams<any, string>) => {
-      const flightPlan = params.row as vatsimEDCT;
-
-      return clsx({
-        "vatsim--callsign": true,
-        "vatsim--new": flightPlan.importState === ImportState.NEW,
-        "vatsim--updated": flightPlan.importState === ImportState.UPDATED,
-        "vatsim--imported": flightPlan.importState === ImportState.IMPORTED,
-      });
-    },
-  },
-  {
-    field: "departure",
-    headerName: "Departure airport",
-    align: "center",
-    headerAlign: "center",
-    width: 175,
-    editable: false,
-  },
-  {
-    field: "arrival",
-    headerName: "Arrival airport",
-    align: "center",
-    headerAlign: "center",
-    width: 175,
-    editable: false,
-  },
-  {
-    field: "departureTime",
-    headerName: "Filed departure",
-    align: "center",
-    headerAlign: "center",
-    width: 175,
-    editable: false,
-    valueFormatter: formatDateTime,
-  },
-  {
-    field: "shortEDCT",
-    headerName: "EDCT",
-    align: "center",
-    headerAlign: "center",
-    width: 100,
-    editable: true,
-  },
-  {
-    field: "minutesToEDCT",
-    headerName: "To EDCT",
-    align: "center",
-    headerAlign: "center",
-    width: 100,
-    editable: false,
-  },
-];
 
 const VatsimEDCTFlightPlans = () => {
   const bellPlayer = useAudio("/bell.mp3");
@@ -285,7 +218,9 @@ const VatsimEDCTFlightPlans = () => {
 
     // Not currently connected so connect
     if (!isConnected && socketRef.current) {
-      setFlightPlans([]);
+      setFlightPlans(() => {
+        return [];
+      });
 
       // Clean up the airport codes
       const cleanedDepartureCodes = cleanCodes(departureCodes);
@@ -317,93 +252,27 @@ const VatsimEDCTFlightPlans = () => {
     onPrompt,
   });
 
-  const toggleFlightPlanState = (params: GridCellParams) => {
-    if (params.field !== "callsign") {
-      return;
-    }
-
-    const planIndex = flightPlans.findIndex(
-      (plan) => plan.callsign === params.value
-    );
-    if (planIndex !== -1) {
-      const updatedFlightPlans = [...flightPlans];
-
-      updatedFlightPlans[planIndex].importState !== ImportState.IMPORTED
-        ? (updatedFlightPlans[planIndex].importState = ImportState.IMPORTED)
-        : (updatedFlightPlans[planIndex].importState = ImportState.NEW);
-      setFlightPlans(updatedFlightPlans);
-    }
-  };
-
-  const saveEDCTToServer = useCallback(
-    async (newRow: GridRowModel, originalRow: GridRowModel) => {
-      const newEDCT = newRow as vatsimEDCT;
-
-      if (!newEDCT._id) {
-        setSnackbar({
-          children: `Unable to update EDCT: _id is undefined.`,
-          severity: "error",
-        });
-        return originalRow;
+  const toggleFlightPlanState = useCallback(
+    (params: GridCellParams) => {
+      if (params.field !== "callsign") {
+        return;
       }
 
-      const timeRegex = /^(\d{2}:\d{2}$)/; // hh:mm
-      const plusRegex = /^\+(\d+)$/; // +time
+      // Check done outside setFlightPlans so drafts aren't created for every object in the
+      // array.
+      const index = flightPlans.findIndex(
+        (plan) => plan.callsign === params.value
+      );
 
-      let newEDCTDateTime: DateTime | null;
-
-      // An empty shortEDCT means no EDCT should be assigned to the flight
-      if (newEDCT.shortEDCT === undefined || newEDCT.shortEDCT.trim() === "") {
-        newEDCTDateTime = null;
-      }
-      // If the string starts with + then the new EDCT time is the current time in UTC plus the requested minutes
-      else if (
-        newEDCT.shortEDCT.startsWith("+") &&
-        plusRegex.test(newEDCT.shortEDCT)
-      ) {
-        const minutes = parseInt(newEDCT.shortEDCT.substring(1));
-        newEDCTDateTime = DateTime.utc().plus({ minutes });
-      }
-      // Otherwise assume it is a time in the format "HH:mm"
-      else if (timeRegex.test(newEDCT.shortEDCT)) {
-        newEDCTDateTime = DateTime.fromFormat(newEDCT.shortEDCT, "HH:mm", {
-          zone: "UTC",
+      if (index !== -1) {
+        setFlightPlans((draft) => {
+          draft[index].importState !== ImportState.IMPORTED
+            ? (draft[index].importState = ImportState.IMPORTED)
+            : (draft[index].importState = ImportState.NEW);
         });
-      } else {
-        setSnackbar({
-          children: `Unable to updated EDCT: ${newEDCT.shortEDCT} is not a valid format.`,
-          severity: "error",
-        });
-        return originalRow;
-      }
-
-      try {
-        await updateEdct(newEDCT._id, newEDCTDateTime);
-
-        // The GridRowModel isn't really a vatsimEDCT so it doesn't have a true EDCT setter.
-        // This means manually updating the shortEDCT and minutesToEDCT properties
-        newEDCT.EDCT = newEDCTDateTime?.toISO() ?? "";
-        newEDCT.minutesToEDCT = vatsimEDCT.calculateMinutesToEDCT(newEDCT.EDCT);
-        newEDCT.shortEDCT = vatsimEDCT.calculateShortEDCT(newEDCT.EDCT);
-
-        setSnackbar({
-          children: `EDCT for ${newEDCT.callsign} updated to ${
-            newEDCTDateTime?.toISOTime() ?? " no EDCT"
-          }`,
-          severity: "info",
-        });
-
-        return newEDCT;
-      } catch (error) {
-        const err = error as Error;
-        setSnackbar({
-          children: `Unable to update EDCT for ${newEDCT.callsign}: ${err.message}`,
-          severity: "error",
-        });
-        return originalRow;
       }
     },
-    []
+    [flightPlans, setFlightPlans]
   );
 
   return (
@@ -437,31 +306,11 @@ const VatsimEDCTFlightPlans = () => {
           </Stack>
         </form>
         <Stack sx={{ mt: 2, ml: 1 }} spacing={2}>
-          <StyledEDCTDataGrid
-            sx={{
-              mt: 2,
-              ml: 1,
-              "&.MuiDataGrid-root .MuiDataGrid-cell:focus-within": {
-                outline: "none !important",
-              },
-            }}
-            onCellClick={toggleFlightPlanState}
-            autoHeight
-            rows={flightPlans}
-            columns={columns}
-            disableRowSelectionOnClick
-            processRowUpdate={(updatedRow, originalRow) =>
-              saveEDCTToServer(updatedRow, originalRow)
-            }
-            getRowId={(row) => (row as IVatsimFlightPlan)._id}
-            getRowClassName={getRowClassName}
-            initialState={{
-              columns: {
-                columnVisibilityModel: {
-                  _id: false,
-                },
-              },
-            }}
+          <EDCTDataGrid
+            onToggleFlightPlanState={toggleFlightPlanState}
+            flightPlans={flightPlans}
+            onSetSnackbar={setSnackbar}
+            allowEdit
           />
           <Legend />
         </Stack>

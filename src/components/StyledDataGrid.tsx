@@ -14,7 +14,7 @@ const getSelectedBackgroundColor = (color: string, mode: string) =>
 const getSelectedHoverBackgroundColor = (color: string, mode: string) =>
   mode === "dark" ? darken(color, 0.4) : lighten(color, 0.4);
 
-const StyledEDCTDataGrid = styled(DataGrid)(({ theme }) => ({
+const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
   "& .vatsim--EDCT--urgent": {
     backgroundColor: getBackgroundColor(
       theme.palette.warning.main,
@@ -65,4 +65,4 @@ const StyledEDCTDataGrid = styled(DataGrid)(({ theme }) => ({
   },
 }));
 
-export default StyledEDCTDataGrid;
+export default StyledDataGrid;
