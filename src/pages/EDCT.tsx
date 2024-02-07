@@ -172,7 +172,10 @@ const Edct = () => {
       {/* Core page */}
       <Box sx={{ display: "flex", flex: 1 }}>
         {viewOnly ? (
-          <VatsimEDCTFlightPlansViewOnly />
+          <VatsimEDCTFlightPlansViewOnly
+            onSetSnackbar={setSnackbar}
+            isConnected={isConnected}
+          />
         ) : (
           <VatsimEDCTFlightPlans
             onSetSnackbar={setSnackbar}
