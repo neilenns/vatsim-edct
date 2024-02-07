@@ -258,17 +258,21 @@ const VatsimEDCTFlightPlans = () => {
         return;
       }
 
-      setFlightPlans((draft) => {
-        const index = draft.findIndex((plan) => plan.callsign === params.value);
+      // Check done outside setFlightPlans so drafts aren't created for every object in the
+      // array.
+      const index = flightPlans.findIndex(
+        (plan) => plan.callsign === params.value
+      );
 
-        if (index !== -1) {
+      if (index !== -1) {
+        setFlightPlans((draft) => {
           draft[index].importState !== ImportState.IMPORTED
             ? (draft[index].importState = ImportState.IMPORTED)
             : (draft[index].importState = ImportState.NEW);
-        }
-      });
+        });
+      }
     },
-    [setFlightPlans]
+    [flightPlans, setFlightPlans]
   );
 
   return (
