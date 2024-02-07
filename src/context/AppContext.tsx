@@ -1,57 +1,23 @@
 import {
   Dispatch,
+  PropsWithChildren,
   SetStateAction,
   createContext,
-  useContext,
   useEffect,
   useMemo,
   useState,
 } from "react";
 import { IUser } from "../interfaces/IUser.mts";
+import socketIOClient from "socket.io-client";
+import { ENV } from "../env.mts";
 
-// This method of implementing context is based on
-// https://dmitripavlutin.com/react-context-and-usecontext/
-interface Props {
-  children: React.ReactNode;
-}
-
+// This method of setting up app context in TypeScript comes from
+// https://gist.github.com/JLarky/5a1642abd8741f2683a817f36dd48e78#file-darkcontextminimal-tsx
 export type SetUserFunction = Dispatch<
   SetStateAction<Partial<IUser> | undefined>
 >;
 
-interface AppContext {
-  muted: boolean;
-  setMuted: Dispatch<SetStateAction<boolean>>;
-  autoHideImported: boolean;
-  setAutoHideImported: Dispatch<SetStateAction<boolean>>;
-  hideInformational: boolean;
-  setHideInformational: Dispatch<SetStateAction<boolean>>;
-  streamingMode: boolean;
-  setStreamingMode: Dispatch<SetStateAction<boolean>>;
-}
-
-const initialContext: AppContext = {
-  muted: false,
-  setMuted: () => {
-    throw new Error("setMuted function must be overridden");
-  },
-  autoHideImported: false,
-  setAutoHideImported: () => {
-    throw new Error("setAutoHideImported function must be overridden");
-  },
-  hideInformational: true,
-  setHideInformational: () => {
-    throw new Error("sethideInformational function must be overridden");
-  },
-  streamingMode: false,
-  setStreamingMode: () => {
-    throw new Error("setStreamingMode function must be overridden");
-  },
-};
-
-const AppContext = createContext<AppContext>(initialContext);
-
-export const AppContextProvider = ({ children }: Props): JSX.Element => {
+const useProviderValue = () => {
   const [muted, setMuted] = useState(localStorage.getItem("muted") === "true"); // Results in a default vaue of false
   const [autoHideImported, setAutoHideImported] = useState(
     localStorage.getItem("autoHideImported") === "true" // Results in a default vaue of false
@@ -61,6 +27,14 @@ export const AppContextProvider = ({ children }: Props): JSX.Element => {
   );
   const [streamingMode, setStreamingMode] = useState(
     localStorage.getItem("streamingMode") == "true" // Results in a default vaue of false
+  );
+  const [socket] = useState(
+    socketIOClient(ENV.VITE_SERVER_URL, {
+      autoConnect: false,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      auth: { token: ENV.VITE_API_KEY },
+    })
   );
 
   // Save to local storage so on page refresh this isn't lost. So dumb. Why do people use context?
@@ -80,7 +54,7 @@ export const AppContextProvider = ({ children }: Props): JSX.Element => {
     localStorage.setItem("streamingMode", streamingMode.toString());
   }, [streamingMode]);
 
-  const value = useMemo(
+  return useMemo(
     () => ({
       muted,
       setMuted,
@@ -90,19 +64,19 @@ export const AppContextProvider = ({ children }: Props): JSX.Element => {
       setHideInformational,
       streamingMode,
       setStreamingMode,
+      socket,
     }),
-    [
-      muted,
-      autoHideImported,
-      hideInformational,
-      streamingMode,
-      setStreamingMode,
-    ]
+    [muted, autoHideImported, hideInformational, streamingMode, socket]
   );
-
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
-export default function AppContextConsumer() {
-  return useContext(AppContext);
-}
+type Context = ReturnType<typeof useProviderValue>;
+
+export const AppContext = createContext<Context | undefined>(undefined);
+AppContext.displayName = "AppContext"; // For debugging
+
+export const AppContextProvider = (props: PropsWithChildren) => {
+  const value = useProviderValue();
+
+  return <AppContext.Provider value={value} {...props} />;
+};

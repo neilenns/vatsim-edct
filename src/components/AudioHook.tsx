@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import useAppContext from "../context/AppContext";
+import { useAppContext } from "../hooks/useAppContext.mts";
 
 export interface useAudioType {
   play: () => void;

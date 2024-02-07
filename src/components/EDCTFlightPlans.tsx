@@ -12,7 +12,6 @@ import {
 } from "react";
 import { useIdleTimer } from "react-idle-timer";
 import { useImmer } from "use-immer";
-import useSocket from "../hooks/useSocket";
 import {
   IVatsimFlightPlan,
   ImportState,
@@ -23,6 +22,7 @@ import { AlertSnackbarProps } from "./AlertSnackbar";
 import { useAudio } from "./AudioHook";
 import EDCTDataGrid from "./EDCTDataGrid";
 import Legend from "./Legend";
+import { useAppContext } from "../hooks/useAppContext.mts";
 
 const logger = debug("edct:EDCTFlightPlans");
 
@@ -34,7 +34,7 @@ const VatsimEDCTFlightPlans = ({
   isConnected,
   onSetSnackbar,
 }: VastimEDCTFlightPlansProps) => {
-  const socket = useSocket();
+  const { socket } = useAppContext();
   const bellPlayer = useAudio("/bell.mp3");
   const [flightPlans, setFlightPlans] = useImmer<vatsimEDCT[]>([]);
   const [departureCodes, setDepartureCodes] = useState(
