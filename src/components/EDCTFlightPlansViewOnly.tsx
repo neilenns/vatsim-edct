@@ -4,7 +4,9 @@ import { GridCellParams } from "@mui/x-data-grid";
 import debug from "debug";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useIdleTimer } from "react-idle-timer";
+import { useSearchParams } from "react-router-dom";
 import { useImmer } from "use-immer";
+import { useAppContext } from "../hooks/useAppContext.mts";
 import {
   IVatsimFlightPlan,
   ImportState,
@@ -14,7 +16,6 @@ import vatsimEDCT from "../utils/vatsimEDCT.mts";
 import { useAudio } from "./AudioHook";
 import EDCTDataGrid from "./EDCTDataGrid";
 import Legend from "./Legend";
-import { useAppContext } from "../hooks/useAppContext.mts";
 
 const logger = debug("edct:EDCTFlightPlansViewOnly");
 
@@ -39,11 +40,17 @@ const VatsimEDCTFlightPlansViewOnly = ({
   );
   const [hasNew, setHasNew] = useState(false);
   const [hasEDCTUpdates, setHasEDCTUpdates] = useState(false);
+  const [searchParams] = useSearchParams();
 
-  // Set the window title
+  // Set the window title and get the query params
   useEffect(() => {
     document.title = `EDCT assignments`;
   }, []);
+
+  // Pre-fill the departure field with the codes from the URL.
+  useEffect(() => {
+    setDepartureCodes(searchParams.get("d") ?? "");
+  }, [searchParams]);
 
   // Play bell sounds on new or updated flight plans
   useEffect(() => {
