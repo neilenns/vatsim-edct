@@ -30,9 +30,17 @@ const AirportCodes = () => {
     },
     validationSchema,
     onSubmit: (values) => {
-      // This trick prevents the history stack from filling with garbage.
-      // It comes from https://reactrouter.com/en/main/start/tutorial#managing-the-history-stack
-      submit(values, { replace: true });
+      if (
+        departureCodes === values.departureCodes &&
+        arrivalCodes === values.arrivalCodes
+      ) {
+        // If the codes didn't change then just reconnect the socket.
+        socket.connect();
+      } else {
+        // replace: true prevents the history stack from filling with garbage.
+        // It comes from https://reactrouter.com/en/main/start/tutorial#managing-the-history-stack
+        submit(values, { replace: true });
+      }
     },
   });
 
