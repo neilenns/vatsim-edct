@@ -1,6 +1,6 @@
 import { Button, Stack, TextField } from "@mui/material";
 import { useFormik } from "formik";
-import { useNavigation, useSubmit } from "react-router-dom";
+import { useLoaderData, useNavigation, useSubmit } from "react-router-dom";
 import * as yup from "yup";
 import { useAppContext } from "../hooks/useAppContext.mts";
 
@@ -20,15 +20,20 @@ const AirportCodes = () => {
   const submit = useSubmit();
   const navigation = useNavigation();
   const { isConnected, socket } = useAppContext();
+  const { departureCodes, arrivalCodes } =
+    useLoaderData() as AirportCodesFormData;
 
   const formik = useFormik<AirportCodesFormData>({
     initialValues: {
-      departureCodes: localStorage.getItem("edctDepartureCodes") ?? "",
-      arrivalCodes: localStorage.getItem("edctArrivalCodes") ?? "",
+      departureCodes,
+      arrivalCodes,
     },
     validationSchema,
     onSubmit: (values) => {
-      submit(values, { method: "get" });
+      // This trick prevents the history stack from filling with garbage.
+      // It comes from https://reactrouter.com/en/main/start/tutorial#managing-the-history-stack
+      const isFirstSearch = departureCodes === "" && arrivalCodes === "";
+      submit(values, { replace: !isFirstSearch });
     },
   });
 

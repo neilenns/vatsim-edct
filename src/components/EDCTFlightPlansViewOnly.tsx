@@ -32,7 +32,7 @@ const VatsimEDCTFlightPlansViewOnly = ({
   const [hasNew, setHasNew] = useState(false);
   const [hasEDCTUpdates, setHasEDCTUpdates] = useState(false);
   const [searchParams] = useSearchParams();
-  const airportCodes = useLoaderData() as AirportCodesFormData;
+  const { departureCodes } = useLoaderData() as AirportCodesFormData;
 
   const connectToVatsim = useCallback(() => {
     setFlightPlans([]);
@@ -46,12 +46,12 @@ const VatsimEDCTFlightPlansViewOnly = ({
 
   // Connect if codes were provided
   useEffect(() => {
-    if (!airportCodes.departureCodes) {
+    if (!departureCodes) {
       return;
     }
 
     connectToVatsim();
-  }, [airportCodes.departureCodes, connectToVatsim, searchParams]);
+  }, [departureCodes, connectToVatsim, searchParams]);
 
   // Play bell sounds on new or updated flight plans
   useEffect(() => {
@@ -65,14 +65,14 @@ const VatsimEDCTFlightPlansViewOnly = ({
   // This method of handling socket events comes from
   // https://dev.to/bravemaster619/how-to-use-socket-io-client-correctly-in-react-app-o65
   const onConnect = useCallback(() => {
-    if (!airportCodes.departureCodes) {
+    if (!departureCodes) {
       return;
     }
 
     logger("Connected for VATSIM EDCT flight plan updates");
 
-    socket.emit("watchEDCTViewOnly", airportCodes.departureCodes.split(","));
-  }, [airportCodes.departureCodes, socket]);
+    socket.emit("watchEDCTViewOnly", departureCodes.split(","));
+  }, [departureCodes, socket]);
 
   const onVatsimEDCTViewOnlyUpdate = useCallback(
     (vatsimPlans: IVatsimFlightPlan[]) => {
