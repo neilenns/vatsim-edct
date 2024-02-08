@@ -3,14 +3,15 @@ import {
   PropsWithChildren,
   SetStateAction,
   createContext,
+  useCallback,
   useEffect,
   useMemo,
   useState,
 } from "react";
-import { IUser } from "../interfaces/IUser.mts";
 import socketIOClient from "socket.io-client";
-import { ENV } from "../env.mts";
 import { AlertSnackbarProps } from "../components/AlertSnackbar";
+import { ENV } from "../env.mts";
+import { IUser } from "../interfaces/IUser.mts";
 
 // This method of setting up app context in TypeScript comes from
 // https://gist.github.com/JLarky/5a1642abd8741f2683a817f36dd48e78#file-darkcontextminimal-tsx
@@ -56,6 +57,10 @@ const useProviderValue = () => {
     localStorage.setItem("streamingMode", streamingMode.toString());
   }, [streamingMode]);
 
+  const isConnected = useCallback(() => {
+    return socket.connected;
+  }, [socket]);
+
   return useMemo(
     () => ({
       muted,
@@ -69,6 +74,7 @@ const useProviderValue = () => {
       socket,
       snackbar,
       setSnackbar,
+      isConnected,
     }),
     [
       muted,
@@ -77,6 +83,7 @@ const useProviderValue = () => {
       streamingMode,
       socket,
       snackbar,
+      isConnected,
     ]
   );
 };

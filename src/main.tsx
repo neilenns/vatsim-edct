@@ -7,6 +7,8 @@ import { AppContextProvider } from "./context/AppContext.tsx";
 import "./index.css";
 
 // Routes
+import AirportCodesAction from "./actions/AirportCodesAction.tsx";
+import { AirportCodesLoader } from "./loaders/AirportCodesLoader.tsx";
 import App from "./pages/App.tsx";
 import Edct from "./pages/EDCT.tsx";
 import ErrorPage from "./pages/ErrorPage.tsx";
@@ -52,6 +54,8 @@ const router = createBrowserRouter([
         path: "/view",
         element: <Edct />,
         errorElement: <ErrorPage />,
+        action: AirportCodesAction,
+        loader: AirportCodesLoader,
       },
     ],
   },
