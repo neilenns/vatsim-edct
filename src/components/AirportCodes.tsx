@@ -6,24 +6,21 @@ import { useAppContext } from "../hooks/useAppContext.mts";
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type AirportCodesFormData = {
-  showArrivalCodes: boolean;
   departureCodes: string;
   arrivalCodes: string;
 };
 
-const validationSchema = yup.object({
-  // This is a hidden field in the form that gets used to conditionally validate the arrival codes
-  showArrivalCodes: yup.boolean(),
-  departureCodes: yup.string().required("Airport code is required"),
-  arrivalCodes: yup.string().when("showArrivalCodes", {
-    is: true,
-    then: (schema) => schema.required("Airport code is required"),
-  }),
-});
-
 interface AirportCodesProps {
   showArrivalCodes?: boolean;
 }
+
+let validationSchema = yup.object({
+  departureCodes: yup
+    .string()
+    .uppercase()
+    .trim()
+    .required("Airport code is required"),
+});
 
 const AirportCodes = ({ showArrivalCodes }: AirportCodesProps) => {
   const submit = useSubmit();
@@ -32,13 +29,25 @@ const AirportCodes = ({ showArrivalCodes }: AirportCodesProps) => {
   const { departureCodes, arrivalCodes } =
     useLoaderData() as AirportCodesFormData;
 
+  // This is done without any state since the prop will never change for a given page.
+  // Add in the arrivalCodes validation only if the arrivalCodes field is shown to the user
+  // in the first place.
+  if (showArrivalCodes) {
+    validationSchema = validationSchema.shape({
+      arrivalCodes: yup
+        .string()
+        .uppercase()
+        .trim()
+        .required("Airport code is required"),
+    });
+  }
+
   const formik = useFormik<AirportCodesFormData>({
     initialValues: {
-      showArrivalCodes: showArrivalCodes ?? false,
       departureCodes,
       arrivalCodes,
     },
-    validationSchema,
+    validationSchema: validationSchema,
     onSubmit: (values) => {
       if (
         departureCodes === values.departureCodes &&
@@ -110,12 +119,6 @@ const AirportCodes = ({ showArrivalCodes }: AirportCodesProps) => {
             Disconnect
           </Button>
         )}
-        <input
-          type="checkbox"
-          id="showArrivalCodes"
-          name="showArrivalCodes"
-          hidden
-        />
       </Stack>
     </form>
   );
