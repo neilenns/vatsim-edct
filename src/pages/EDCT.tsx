@@ -18,9 +18,7 @@ import { DateTime } from "luxon";
 import pluralize from "pluralize";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import AlertSnackbar, {
-  AlertSnackBarOnClose,
-} from "../components/AlertSnackbar";
+import AlertSnackbar from "../components/AlertSnackbar";
 import VatsimEDCTFlightPlans from "../components/EDCTFlightPlans";
 import VatsimEDCTFlightPlansViewOnly from "../components/EDCTFlightPlansViewOnly";
 import { useAppContext } from "../hooks/useAppContext.mts";
@@ -33,7 +31,7 @@ const Edct = () => {
   const { muted, setMuted } = useAppContext();
   const [currentTime, setCurrentTime] = useState<DateTime>(DateTime.utc());
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
-  const { socket, snackbar, setSnackbar } = useAppContext();
+  const { socket, setSnackbar } = useAppContext();
 
   useEffect(() => {
     // Update current time every minute
@@ -53,10 +51,6 @@ const Edct = () => {
 
   const toggleMuted = () => {
     setMuted(!muted);
-  };
-
-  const handleSnackbarClose: AlertSnackBarOnClose = () => {
-    setSnackbar(null);
   };
 
   // The main page takes care of basic socket connection states and reporting
@@ -174,7 +168,7 @@ const Edct = () => {
         ) : (
           <VatsimEDCTFlightPlans isConnected={isConnected} />
         )}
-        <AlertSnackbar {...snackbar} onClose={handleSnackbarClose} />
+        <AlertSnackbar />
       </Box>
     </Box>
   );
