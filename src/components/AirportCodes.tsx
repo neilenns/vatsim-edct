@@ -48,7 +48,10 @@ const AirportCodes = () => {
           id="departureCodes"
           name="departureCodes"
           value={formik.values.departureCodes}
-          onChange={formik.handleChange}
+          onChange={(e) => {
+            formik.handleChange(e);
+            socket.disconnect();
+          }}
           onBlur={formik.handleBlur}
           error={
             formik.touched.departureCodes &&
