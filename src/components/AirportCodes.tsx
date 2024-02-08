@@ -57,12 +57,6 @@ const AirportCodes = ({ showArrivalCodes }: AirportCodesProps) => {
   return (
     <form method="post" onSubmit={formik.handleSubmit}>
       <Stack direction="row" sx={{ mt: 2, ml: 1 }} spacing={2}>
-        <input
-          type="checkbox"
-          id="showArrivalCodes"
-          name="showArrivalCodes"
-          hidden
-        />
         <TextField
           id="departureCodes"
           name="departureCodes"
@@ -116,6 +110,12 @@ const AirportCodes = ({ showArrivalCodes }: AirportCodesProps) => {
             Disconnect
           </Button>
         )}
+        <input
+          type="checkbox"
+          id="showArrivalCodes"
+          name="showArrivalCodes"
+          hidden
+        />
       </Stack>
     </form>
   );
