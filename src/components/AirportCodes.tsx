@@ -32,8 +32,7 @@ const AirportCodes = () => {
     onSubmit: (values) => {
       // This trick prevents the history stack from filling with garbage.
       // It comes from https://reactrouter.com/en/main/start/tutorial#managing-the-history-stack
-      const isFirstSearch = departureCodes === "" && arrivalCodes === "";
-      submit(values, { replace: !isFirstSearch });
+      submit(values, { replace: true });
     },
   });
 
