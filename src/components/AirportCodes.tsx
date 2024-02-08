@@ -36,10 +36,6 @@ const AirportCodes = () => {
     },
   });
 
-  const disconnect = () => {
-    socket.disconnect();
-  };
-
   return (
     <form method="post" onSubmit={formik.handleSubmit}>
       <Stack direction="row" sx={{ mt: 2, ml: 1 }} spacing={2}>
@@ -65,7 +61,15 @@ const AirportCodes = () => {
             Connect
           </Button>
         )}
-        {isConnected() && <Button onClick={disconnect}>Disconnect</Button>}
+        {isConnected() && (
+          <Button
+            onClick={() => {
+              socket.disconnect();
+            }}
+          >
+            Disconnect
+          </Button>
+        )}
       </Stack>
     </form>
   );
