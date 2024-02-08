@@ -3,7 +3,7 @@ import { GridCellParams } from "@mui/x-data-grid";
 import debug from "debug";
 import { useCallback, useEffect, useState } from "react";
 import { useIdleTimer } from "react-idle-timer";
-import { useLoaderData, useSearchParams } from "react-router-dom";
+import { useLoaderData } from "react-router-dom";
 import { useImmer } from "use-immer";
 import { useAppContext } from "../hooks/useAppContext.mts";
 import {
@@ -31,7 +31,6 @@ const VatsimEDCTFlightPlansViewOnly = ({
   const [flightPlans, setFlightPlans] = useImmer<vatsimEDCT[]>([]);
   const [hasNew, setHasNew] = useState(false);
   const [hasEDCTUpdates, setHasEDCTUpdates] = useState(false);
-  const [searchParams] = useSearchParams();
   const { departureCodes } = useLoaderData() as AirportCodesFormData;
 
   const connectToVatsim = useCallback(() => {
@@ -51,7 +50,7 @@ const VatsimEDCTFlightPlansViewOnly = ({
     }
 
     connectToVatsim();
-  }, [departureCodes, connectToVatsim, searchParams]);
+  }, [departureCodes, connectToVatsim]);
 
   // Play bell sounds on new or updated flight plans
   useEffect(() => {

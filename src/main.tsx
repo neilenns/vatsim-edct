@@ -49,6 +49,7 @@ const router = createBrowserRouter([
         path: "/edct",
         element: <AuthenticationGuard role="user" component={<Edct />} />,
         errorElement: <ErrorPage />,
+        loader: AirportCodesLoader,
       },
       {
         id: "view",
