@@ -7,14 +7,15 @@ import { AppContextProvider } from "./context/AppContext.tsx";
 import "./index.css";
 
 // Routes
-import AirportCodesAction from "./actions/AirportCodesAction.tsx";
-import { AirportCodesLoader } from "./loaders/AirportCodesLoader.tsx";
 import App from "./pages/App.tsx";
 import Edct from "./pages/EDCT.tsx";
 import ErrorPage from "./pages/ErrorPage.tsx";
 import LoginSignup from "./pages/LoginSignup.tsx";
 import Logout from "./pages/Logout.tsx";
 import WelcomePage from "./pages/Welcome.tsx";
+
+// Actions and loaders
+import { AirportCodesLoader } from "./loaders/AirportCodesLoader.tsx";
 
 const router = createBrowserRouter([
   {
@@ -54,7 +55,6 @@ const router = createBrowserRouter([
         path: "/view",
         element: <Edct />,
         errorElement: <ErrorPage />,
-        action: AirportCodesAction,
         loader: AirportCodesLoader,
       },
     ],

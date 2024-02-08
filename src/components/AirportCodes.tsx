@@ -7,7 +7,7 @@ import { useAppContext } from "../hooks/useAppContext.mts";
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type AirportCodesFormData = {
   departureCodes: string;
-  arrivals: string;
+  arrivalCodes: string;
 };
 
 const validationSchema = yup.object({
@@ -24,11 +24,11 @@ const AirportCodes = () => {
   const formik = useFormik<AirportCodesFormData>({
     initialValues: {
       departureCodes: localStorage.getItem("edctDepartureCodes") ?? "",
-      arrivals: localStorage.getItem("edctArrivalCodes") ?? "",
+      arrivalCodes: localStorage.getItem("edctArrivalCodes") ?? "",
     },
     validationSchema,
     onSubmit: (values) => {
-      submit(values, { method: "post" });
+      submit(values, { method: "get" });
     },
   });
 
