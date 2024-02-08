@@ -6,17 +6,26 @@ import { useAppContext } from "../hooks/useAppContext.mts";
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type AirportCodesFormData = {
+  showArrivalCodes: boolean;
   departureCodes: string;
   arrivalCodes: string;
 };
 
 const validationSchema = yup.object({
-  departureCodes: yup
-    .string()
-    .required("At least one departure code is required"),
+  // This is a hidden field in the form that gets used to conditionally validate the arrival codes
+  showArrivalCodes: yup.boolean(),
+  departureCodes: yup.string().required("Airport code is required"),
+  arrivalCodes: yup.string().when("showArrivalCodes", {
+    is: true,
+    then: (schema) => schema.required("Airport code is required"),
+  }),
 });
 
-const AirportCodes = () => {
+interface AirportCodesProps {
+  showArrivalCodes?: boolean;
+}
+
+const AirportCodes = ({ showArrivalCodes }: AirportCodesProps) => {
   const submit = useSubmit();
   const navigation = useNavigation();
   const { isConnected, socket } = useAppContext();
@@ -25,6 +34,7 @@ const AirportCodes = () => {
 
   const formik = useFormik<AirportCodesFormData>({
     initialValues: {
+      showArrivalCodes: showArrivalCodes ?? false,
       departureCodes,
       arrivalCodes,
     },
@@ -47,9 +57,17 @@ const AirportCodes = () => {
   return (
     <form method="post" onSubmit={formik.handleSubmit}>
       <Stack direction="row" sx={{ mt: 2, ml: 1 }} spacing={2}>
+        <input
+          type="checkbox"
+          id="showArrivalCodes"
+          name="showArrivalCodes"
+          hidden
+        />
         <TextField
           id="departureCodes"
           name="departureCodes"
+          label="Departure airports"
+          required
           value={formik.values.departureCodes}
           onChange={(e) => {
             formik.handleChange(e);
@@ -64,6 +82,26 @@ const AirportCodes = () => {
             formik.touched.departureCodes && formik.errors.departureCodes
           }
         />
+        {showArrivalCodes && (
+          <TextField
+            id="arrivalCodes"
+            name="arrivalCodes"
+            label="Arrival airports"
+            value={formik.values.arrivalCodes}
+            required
+            onChange={(e) => {
+              formik.handleChange(e);
+              socket.disconnect();
+            }}
+            onBlur={formik.handleBlur}
+            error={
+              formik.touched.arrivalCodes && Boolean(formik.errors.arrivalCodes)
+            }
+            helperText={
+              formik.touched.arrivalCodes && formik.errors.arrivalCodes
+            }
+          />
+        )}
         {!isConnected() && (
           <Button type="submit" disabled={navigation.state === "submitting"}>
             Connect

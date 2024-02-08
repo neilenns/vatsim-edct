@@ -1,8 +1,8 @@
 import { LoaderFunction } from "react-router";
 
-const cleanCodes = (codes: string | null): string => {
+const cleanCodes = (codes: string | null): string | null => {
   if (!codes) {
-    return "";
+    return null;
   }
   return codes
     .split(",")
@@ -14,7 +14,7 @@ export const AirportCodesLoader: LoaderFunction = ({ request }) => {
   const url = new URL(request.url);
 
   return {
-    departureCodes: cleanCodes(url.searchParams.get("departureCodes")),
-    arrivalCodes: cleanCodes(url.searchParams.get("arrivalCodes")),
+    departureCodes: cleanCodes(url.searchParams.get("departureCodes")) ?? "",
+    arrivalCodes: cleanCodes(url.searchParams.get("arrivalCodes")) ?? "",
   };
 };
