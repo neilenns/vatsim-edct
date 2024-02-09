@@ -12,10 +12,10 @@ import {
 } from "../interfaces/IVatsimFlightPlan.mts";
 import { processIncomingEDCT } from "../utils/vatsim.mts";
 import vatsimEDCT from "../utils/vatsimEDCT.mts";
+import AirportCodes, { AirportCodesFormData } from "./AirportCodes";
 import { useAudio } from "./AudioHook";
 import EDCTDataGrid from "./EDCTDataGrid";
 import Legend from "./Legend";
-import AirportCodes, { AirportCodesFormData } from "./AirportCodes";
 
 const logger = debug("edct:EDCTFlightPlans");
 

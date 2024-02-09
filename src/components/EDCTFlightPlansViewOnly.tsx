@@ -157,6 +157,11 @@ const VatsimEDCTFlightPlansViewOnly = ({
           <EDCTDataGrid
             onToggleFlightPlanState={toggleFlightPlanState}
             flightPlans={flightPlans}
+            initialState={{
+              sorting: {
+                sortModel: [{ field: "minutesToEDCT", sort: "asc" }],
+              },
+            }}
           />
           <Legend />
         </Stack>

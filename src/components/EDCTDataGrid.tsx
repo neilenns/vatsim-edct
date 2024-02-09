@@ -1,13 +1,16 @@
-import { useCallback } from "react";
-import StyledDataGrid from "./StyledDataGrid";
 import {
+  DataGridProps,
   GridCellEditStartParams,
   GridCellParams,
   GridColDef,
   GridRowModel,
   MuiEvent,
 } from "@mui/x-data-grid";
+import { GridInitialStateCommunity } from "@mui/x-data-grid/models/gridStateCommunity";
+import clsx from "clsx";
 import { DateTime } from "luxon";
+import { useCallback } from "react";
+import { useAppContext } from "../hooks/useAppContext.mts";
 import {
   IVatsimFlightPlan,
   ImportState,
@@ -15,13 +18,13 @@ import {
 import { updateEdct } from "../services/edct.mts";
 import { formatDateTime, getRowClassName } from "../utils/dataGrid.mts";
 import vatsimEDCT from "../utils/vatsimEDCT.mts";
-import clsx from "clsx";
-import { useAppContext } from "../hooks/useAppContext.mts";
+import StyledDataGrid from "./StyledDataGrid";
 
-interface EDCTDataGridProps {
+interface EDCTDataGridProps extends Omit<DataGridProps, "rows" | "columns"> {
   flightPlans: vatsimEDCT[];
   onToggleFlightPlanState: (params: GridCellParams) => void;
   allowEdit?: boolean;
+  initialState?: GridInitialStateCommunity;
 }
 
 const columns: GridColDef[] = [
@@ -91,6 +94,7 @@ const EDCTDataGrid = ({
   onToggleFlightPlanState,
   flightPlans,
   allowEdit,
+  initialState,
 }: EDCTDataGridProps) => {
   const { setSnackbar } = useAppContext();
 
@@ -194,6 +198,7 @@ const EDCTDataGrid = ({
             _id: false,
           },
         },
+        ...initialState,
       }}
     />
   );
