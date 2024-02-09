@@ -14,6 +14,9 @@ import LoginSignup from "./pages/LoginSignup.tsx";
 import Logout from "./pages/Logout.tsx";
 import WelcomePage from "./pages/Welcome.tsx";
 
+// Actions and loaders
+import { AirportCodesLoader } from "./loaders/AirportCodesLoader.tsx";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -46,12 +49,14 @@ const router = createBrowserRouter([
         path: "/edct",
         element: <AuthenticationGuard role="user" component={<Edct />} />,
         errorElement: <ErrorPage />,
+        loader: AirportCodesLoader,
       },
       {
         id: "view",
         path: "/view",
         element: <Edct />,
         errorElement: <ErrorPage />,
+        loader: AirportCodesLoader,
       },
     ],
   },
