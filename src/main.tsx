@@ -15,48 +15,60 @@ import Logout from "./pages/Logout.tsx";
 import WelcomePage from "./pages/Welcome.tsx";
 
 // Actions and loaders
+import { Auth0ProviderWithNavigate } from "./context/Auth0ProviderWithNavigate.tsx";
 import { AirportCodesLoader } from "./loaders/AirportCodesLoader.tsx";
+import CallbackPage from "./pages/Callback.tsx";
 
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: <WelcomePage />,
-    errorElement: <ErrorPage />,
-  },
-  {
-    id: "login",
-    path: "/login",
-    element: <LoginSignup />,
-    errorElement: <ErrorPage />,
-  },
-  {
-    id: "signup",
-    path: "/signup",
-    element: <LoginSignup />,
-    errorElement: <ErrorPage />,
-  },
-  {
-    id: "logout",
-    path: "/logout",
-    element: <Logout />,
-    errorElement: <ErrorPage />,
-  },
-  {
-    element: <App />,
+    element: <Auth0ProviderWithNavigate />,
     children: [
       {
-        id: "edct",
-        path: "/edct",
-        element: <AuthenticationGuard role="user" component={<Edct />} />,
+        path: "/",
+        element: <WelcomePage />,
         errorElement: <ErrorPage />,
-        loader: AirportCodesLoader,
       },
       {
-        id: "view",
-        path: "/view",
-        element: <Edct />,
+        id: "callback",
+        path: "/callback",
+        element: <CallbackPage />,
+      },
+      {
+        id: "login",
+        path: "/login",
+        element: <LoginSignup />,
         errorElement: <ErrorPage />,
-        loader: AirportCodesLoader,
+      },
+      {
+        id: "signup",
+        path: "/signup",
+        element: <LoginSignup />,
+        errorElement: <ErrorPage />,
+      },
+      {
+        id: "logout",
+        path: "/logout",
+        element: <Logout />,
+        errorElement: <ErrorPage />,
+      },
+      {
+        element: <App />,
+        children: [
+          {
+            id: "edct",
+            path: "/edct",
+            element: <AuthenticationGuard role="user" component={Edct} />,
+            errorElement: <ErrorPage />,
+            loader: AirportCodesLoader,
+          },
+          {
+            id: "view",
+            path: "/view",
+            element: <Edct />,
+            errorElement: <ErrorPage />,
+            loader: AirportCodesLoader,
+          },
+        ],
       },
     ],
   },

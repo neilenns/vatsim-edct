@@ -1,26 +1,21 @@
-import { Navigate } from "react-router-dom";
+import { withAuthenticationRequired } from "@auth0/auth0-react";
+import { PageLoader } from "./PageLoader";
 
 interface AuthenticationGuardProps {
   role: "admin" | "user";
-  component: React.ReactNode;
+  component: React.ComponentType<object>;
 }
 
 export const AuthenticationGuard = ({
-  role,
   component,
 }: AuthenticationGuardProps) => {
-  if (!localStorage.getItem("token")) {
-    return <Navigate to="/login" />;
-  }
+  const Component = withAuthenticationRequired(component, {
+    onRedirecting: () => (
+      <div className="page-layout">
+        <PageLoader />
+      </div>
+    ),
+  });
 
-  if (!localStorage.getItem("role")) {
-    return <Navigate to="/login" />;
-  }
-
-  if (role === "admin" && localStorage.getItem("role") !== "admin") {
-    return <Navigate to="/login" />;
-  }
-
-  // At this point the role must be user or they are an admin so it's fine to return the component
-  return <>{component}</>;
+  return <Component />;
 };

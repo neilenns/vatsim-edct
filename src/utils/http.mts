@@ -27,7 +27,7 @@ class CustomHttp {
   }
 
   authorized(token: string): AxiosInstance {
-    this.instance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    this.instance.defaults.headers.common.Authorization = `Bearer ${token}`;
     return this.instance;
   }
 

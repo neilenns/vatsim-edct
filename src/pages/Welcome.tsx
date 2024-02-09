@@ -1,17 +1,17 @@
-import { Box, Typography, Button } from "@mui/material";
-import { Link, Navigate } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
+import { Box, Button, Typography } from "@mui/material";
+import { Link } from "react-router-dom";
 
 const WelcomePage = () => {
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
+  const { loginWithRedirect } = useAuth0();
 
-  if (token !== null && token !== "") {
-    if (role === "admin") {
-      return <Navigate to="/edct" />;
-    }
-
-    return <Navigate to="/edct" />;
-  }
+  const handleLogin = async () => {
+    await loginWithRedirect({
+      appState: {
+        returnTo: "/edct",
+      },
+    });
+  };
 
   return (
     <Box
@@ -35,8 +35,11 @@ const WelcomePage = () => {
         color="primary"
         size="large"
         style={{ marginTop: "16px" }}
-        component={Link}
-        to="/login"
+        onClick={() => {
+          void (async () => {
+            await handleLogin();
+          })();
+        }}
       >
         Login
       </Button>
