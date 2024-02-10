@@ -17,6 +17,7 @@ export default class vatsimEDCT implements IVatsimFlightPlan {
   importState?: ImportState;
   revision!: number;
   minutesToEDCT?: number;
+  updatedAt: DateTime = DateTime.utc();
 
   get EDCT(): string | undefined {
     return this._edct;
