@@ -3,11 +3,13 @@
 //
 // It properly carries forward any state on the existing flight sim plans, and properly
 // reports whether any new or modified plans came in.
+import { DateTime } from "luxon";
 import {
   ImportState,
   IVatsimFlightPlan,
 } from "../interfaces/IVatsimFlightPlan.mjs";
 import vatsimEDCT from "./vatsimEDCT.mts";
+import { ENV } from "../env.mts";
 
 interface ProcessIncomingEDCTResult {
   hasNew: boolean;
@@ -63,8 +65,21 @@ export function processIncomingEDCT(
       existing.departureTime = incoming.departureTime;
       existing.isPrefile = incoming.isPrefile;
       existing.revision = incoming.revision;
-      existing.importState =
-        updated || edctUpdated ? ImportState.UPDATED : existing.importState;
+
+      // If something changed then update the last time it was updated and automatically
+      // set the state to imported
+      if (updated || edctUpdated) {
+        existing.updatedAt = DateTime.utc();
+        existing.importState = ImportState.UPDATED;
+      }
+      // If nothing changed check and see how long it's been since the last update.
+      // If it's been too long set the state to imported.
+      else {
+        const difference = DateTime.utc().diff(existing.updatedAt, "minutes");
+        if (difference.minutes > ENV.VITE_AUTO_CLEAR_UPDATE_INTERVAL_MINUTES) {
+          existing.importState = ImportState.IMPORTED;
+        }
+      }
     }
   });
 
