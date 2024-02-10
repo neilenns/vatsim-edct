@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAppContext } from "../hooks/useAppContext.mts";
 
 export interface useAudioType {
-  play: () => void;
+  play: () => Promise<void>;
 }
 
 export function useAudio(url: string): useAudioType {
@@ -14,9 +14,15 @@ export function useAudio(url: string): useAudioType {
     setIsMuted(muted);
   }, [muted]);
 
-  const play = () => {
+  const play = async () => {
     if (!isMuted) {
-      void audio.play();
+      try {
+        await audio.play();
+      } catch {
+        console.log(
+          `Playing audio blocked by the browser. Interact with the page or install it as an app.`
+        );
+      }
     }
   };
 
