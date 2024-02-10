@@ -19,10 +19,14 @@ import debug from "debug";
 import { DateTime } from "luxon";
 import pluralize from "pluralize";
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import AlertSnackbar from "../components/AlertSnackbar";
 import VatsimEDCTFlightPlans from "../components/EDCTFlightPlans";
 import VatsimEDCTFlightPlansViewOnly from "../components/EDCTFlightPlansViewOnly";
+import {
+  LogoutMethod,
+  UserWithRoles,
+} from "../context/Auth0ProviderWithNavigate";
 import { useAppContext } from "../hooks/useAppContext.mts";
 
 const logger = debug("edct:EDCTPage");
@@ -34,11 +38,13 @@ const Edct = () => {
   const [currentTime, setCurrentTime] = useState<DateTime>(DateTime.utc());
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const { socket, setSnackbar } = useAppContext();
-  const { logout, user } = useAuth0();
-
-  useEffect(() => {
-    logger(user?.["https://my-app.example.com/roles"]);
-  }, [user]);
+  const {
+    logout,
+    user,
+  }: {
+    logout: LogoutMethod;
+    user?: UserWithRoles;
+  } = useAuth0();
 
   useEffect(() => {
     // Update current time every minute
@@ -136,9 +142,17 @@ const Edct = () => {
     });
   };
 
+  // Don't allow signed up but unverified users to do anything. They get
+  // redirected straight to the view page for now.
+  if (
+    !viewOnly &&
+    user?.["https://my-app.example.com/roles"]?.includes("unverified")
+  ) {
+    return <Navigate to="/view" />;
+  }
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      {/* AppBar */}
       <AppBar
         position="static"
         sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}

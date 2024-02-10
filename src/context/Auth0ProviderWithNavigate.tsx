@@ -1,9 +1,15 @@
-import { Auth0Provider } from "@auth0/auth0-react";
+import { Auth0Provider, LogoutOptions, User } from "@auth0/auth0-react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { ENV } from "../env.mts";
 
 interface AppState {
   returnTo?: string;
+}
+
+export type LogoutMethod = (options?: LogoutOptions) => Promise<void>;
+
+export interface UserWithRoles extends User {
+  "https://my-app.example.com/roles"?: string[];
 }
 
 export const Auth0ProviderWithNavigate = () => {
