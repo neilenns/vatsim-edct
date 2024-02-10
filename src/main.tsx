@@ -10,7 +10,6 @@ import "./index.css";
 import App from "./pages/App.tsx";
 import Edct from "./pages/EDCT.tsx";
 import ErrorPage from "./pages/ErrorPage.tsx";
-import LoginSignup from "./pages/LoginSignup.tsx";
 import Logout from "./pages/Logout.tsx";
 import WelcomePage from "./pages/Welcome.tsx";
 
@@ -32,18 +31,6 @@ const router = createBrowserRouter([
         id: "callback",
         path: "/callback",
         element: <CallbackPage />,
-      },
-      {
-        id: "login",
-        path: "/login",
-        element: <LoginSignup />,
-        errorElement: <ErrorPage />,
-      },
-      {
-        id: "signup",
-        path: "/signup",
-        element: <LoginSignup />,
-        errorElement: <ErrorPage />,
       },
       {
         id: "logout",

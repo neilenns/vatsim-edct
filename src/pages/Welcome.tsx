@@ -1,6 +1,5 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { Box, Button, Typography } from "@mui/material";
-import { Link } from "react-router-dom";
 
 const WelcomePage = () => {
   const { loginWithRedirect } = useAuth0();
@@ -9,6 +8,17 @@ const WelcomePage = () => {
     await loginWithRedirect({
       appState: {
         returnTo: "/edct",
+      },
+    });
+  };
+
+  const handleSignup = async () => {
+    await loginWithRedirect({
+      appState: {
+        returnTo: "/edct",
+      },
+      authorizationParams: {
+        screen_hint: "signup",
       },
     });
   };
@@ -46,8 +56,11 @@ const WelcomePage = () => {
       <Button
         size="large"
         style={{ marginTop: "8px" }}
-        component={Link}
-        to="/signup"
+        onClick={() => {
+          void (async () => {
+            await handleSignup();
+          })();
+        }}
       >
         Sign up
       </Button>

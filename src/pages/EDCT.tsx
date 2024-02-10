@@ -1,7 +1,9 @@
+import { useAuth0 } from "@auth0/auth0-react";
 import {
   DarkMode as DarkModeIcon,
   Help as HelpIcon,
   LightMode as LightModeIcon,
+  Logout as LogoutIcon,
   VolumeOff as MutedIcon,
   VolumeMute as UnmutedIcon,
 } from "@mui/icons-material";
@@ -32,6 +34,7 @@ const Edct = () => {
   const [currentTime, setCurrentTime] = useState<DateTime>(DateTime.utc());
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const { socket, setSnackbar } = useAppContext();
+  const { logout } = useAuth0();
 
   useEffect(() => {
     // Update current time every minute
@@ -121,6 +124,14 @@ const Edct = () => {
     };
   }, [socket, setSnackbar]);
 
+  const handleSignout = async () => {
+    await logout({
+      logoutParams: {
+        returnTo: window.location.origin,
+      },
+    });
+  };
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       {/* AppBar */}
@@ -157,6 +168,16 @@ const Edct = () => {
             }
           >
             {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
+          <IconButton
+            onClick={() => {
+              void (async () => {
+                await handleSignout();
+              })();
+            }}
+            aria-label="Sign out"
+          >
+            <LogoutIcon />
           </IconButton>
         </Toolbar>
       </AppBar>
