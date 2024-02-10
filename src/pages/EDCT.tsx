@@ -34,7 +34,11 @@ const Edct = () => {
   const [currentTime, setCurrentTime] = useState<DateTime>(DateTime.utc());
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const { socket, setSnackbar } = useAppContext();
-  const { logout } = useAuth0();
+  const { logout, user } = useAuth0();
+
+  useEffect(() => {
+    logger(user?.["https://my-app.example.com/roles"]);
+  }, [user]);
 
   useEffect(() => {
     // Update current time every minute

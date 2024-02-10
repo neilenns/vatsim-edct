@@ -1,9 +1,16 @@
-export const PageLoader = () => {
-  const loadingImg = "https://cdn.auth0.com/blog/hello-auth0/loader.svg";
+import { Box, CircularProgress } from "@mui/material";
 
+export const PageLoader = () => {
   return (
-    <div className="loader">
-      <img src={loadingImg} alt="Loading..." />
-    </div>
+    <Box
+      sx={{
+        width: 100,
+        height: 100,
+        display: "flex",
+        margin: "auto",
+      }}
+    >
+      <CircularProgress />
+    </Box>
   );
 };
