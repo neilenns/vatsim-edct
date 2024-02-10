@@ -16,7 +16,7 @@ const WelcomePage = () => {
   const handleSignup = async () => {
     await loginWithRedirect({
       appState: {
-        returnTo: "/edct",
+        returnTo: "/pending",
       },
       authorizationParams: {
         screen_hint: "signup",
