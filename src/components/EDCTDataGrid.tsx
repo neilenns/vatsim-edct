@@ -85,7 +85,7 @@ const columns: GridColDef[] = [
     headerName: "To EDCT",
     align: "center",
     headerAlign: "center",
-    width: 100,
+    width: 150,
     editable: false,
   },
 ];
