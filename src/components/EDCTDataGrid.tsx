@@ -44,6 +44,7 @@ const columns: GridColDef[] = [
         "vatsim--new": flightPlan.importState === ImportState.NEW,
         "vatsim--updated": flightPlan.importState === ImportState.UPDATED,
         "vatsim--imported": flightPlan.importState === ImportState.IMPORTED,
+        "vatsim--prefile": flightPlan.isPrefile,
       });
     },
   },
