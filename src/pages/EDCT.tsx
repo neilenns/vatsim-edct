@@ -148,7 +148,7 @@ const Edct = () => {
     !viewOnly &&
     user?.["https://my-app.example.com/roles"]?.includes("unverified")
   ) {
-    return <Navigate to="/view" />;
+    return <Navigate to="/pending" />;
   }
 
   return (

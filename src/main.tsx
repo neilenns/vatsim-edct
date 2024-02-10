@@ -11,6 +11,7 @@ import App from "./pages/App.tsx";
 import Edct from "./pages/EDCT.tsx";
 import ErrorPage from "./pages/ErrorPage.tsx";
 import Logout from "./pages/Logout.tsx";
+import PendingPage from "./pages/Pending.tsx";
 import WelcomePage from "./pages/Welcome.tsx";
 
 // Actions and loaders
@@ -25,6 +26,11 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <WelcomePage />,
+        errorElement: <ErrorPage />,
+      },
+      {
+        path: "/pending",
+        element: <PendingPage />,
         errorElement: <ErrorPage />,
       },
       {
