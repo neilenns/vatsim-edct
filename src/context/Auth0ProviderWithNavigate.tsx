@@ -1,10 +1,5 @@
 import { Auth0Provider, LogoutOptions, User } from "@auth0/auth0-react";
-import { Outlet, useNavigate } from "react-router-dom";
 import { ENV } from "../env.mts";
-
-interface AppState {
-  returnTo?: string;
-}
 
 export type LogoutMethod = (options?: LogoutOptions) => Promise<void>;
 
@@ -12,13 +7,13 @@ export interface UserWithRoles extends User {
   "https://my-app.example.com/roles"?: string[];
 }
 
-export const Auth0ProviderWithNavigate = () => {
-  const navigate = useNavigate();
+interface Auth0ProviderWithNavigateProps {
+  children: React.ReactNode;
+}
 
-  const onRedirectCallback = (appState?: AppState) => {
-    navigate(appState?.returnTo ?? window.location.pathname);
-  };
-
+export const Auth0ProviderWithNavigate = ({
+  children,
+}: Auth0ProviderWithNavigateProps) => {
   if (
     !(
       ENV.VITE_AUTH0_DOMAIN &&
@@ -36,9 +31,8 @@ export const Auth0ProviderWithNavigate = () => {
       authorizationParams={{
         redirect_uri: ENV.VITE_AUTH0_CALLBACK_URL,
       }}
-      onRedirectCallback={onRedirectCallback}
     >
-      <Outlet />
+      {children}
     </Auth0Provider>
   );
 };

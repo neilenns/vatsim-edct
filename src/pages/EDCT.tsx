@@ -149,15 +149,13 @@ const Edct = () => {
     !user?.["https://my-app.example.com/roles"]?.includes("TMU")
   ) {
     return (
-      <ErrorDisplay
-        message={
-          <Typography align="center">
-            This page is only available to TMUs.
-            <br />
-            Are you looking for <Link href="/view">the controller page</Link>?
-          </Typography>
-        }
-      />
+      <ErrorDisplay>
+        <Typography align="center">
+          This page is only available to TMUs.
+          <br />
+          Are you looking for <Link href="/view">the controller page</Link>?
+        </Typography>
+      </ErrorDisplay>
     );
   }
 

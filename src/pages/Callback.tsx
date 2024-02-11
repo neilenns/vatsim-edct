@@ -1,5 +1,7 @@
+import { Navigate } from "react-router";
+
 export const CallbackPage = () => {
-  return <div></div>;
+  return <Navigate to="/edct" />;
 };
 
 export default CallbackPage;

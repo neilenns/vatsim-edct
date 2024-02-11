@@ -2,10 +2,10 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { Box, Button } from "@mui/material";
 
 interface ErrorProps {
-  message: React.ReactElement;
+  children: React.ReactElement;
 }
 
-const ErrorDisplay = ({ message }: ErrorProps) => {
+const ErrorDisplay = ({ children }: ErrorProps) => {
   const { logout, isAuthenticated } = useAuth0();
 
   const handleSignout = async () => {
@@ -30,7 +30,7 @@ const ErrorDisplay = ({ message }: ErrorProps) => {
         width="128"
         height="128"
       />
-      {message}
+      {children}
       {isAuthenticated && (
         <Button
           size="large"
