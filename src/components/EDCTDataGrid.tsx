@@ -44,6 +44,7 @@ const columns: GridColDef[] = [
         "vatsim--new": flightPlan.importState === ImportState.NEW,
         "vatsim--updated": flightPlan.importState === ImportState.UPDATED,
         "vatsim--imported": flightPlan.importState === ImportState.IMPORTED,
+        "vatsim--prefile": flightPlan.isPrefile,
       });
     },
   },
@@ -132,6 +133,12 @@ const EDCTDataGrid = ({
         newEDCTDateTime = DateTime.fromFormat(newEDCT.shortEDCT, "HH:mm", {
           zone: "UTC",
         });
+
+        // If the new time wound up being in the past then it really should be tomorrow.
+        // Fix it.
+        if (newEDCTDateTime < DateTime.utc()) {
+          newEDCTDateTime = newEDCTDateTime.plus({ days: 1 });
+        }
       } else {
         setSnackbar({
           children: `Unable to updated EDCT: ${newEDCT.shortEDCT} is not a valid format.`,
