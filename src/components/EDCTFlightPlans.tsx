@@ -53,7 +53,9 @@ const VatsimEDCTFlightPlans = ({ isConnected }: VastimEDCTFlightPlansProps) => {
   // Set up playing sounds when new or updated plans are received
   useEffect(() => {
     if (hasNew || hasUpdates) {
-      bellPlayer.play();
+      async () => {
+        await bellPlayer.play();
+      };
       setHasNew(false);
       setHasUpdates(false);
     }
