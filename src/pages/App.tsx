@@ -41,7 +41,7 @@ const App = () => {
             {
               id: "edct",
               path: "/edct",
-              element: <AuthenticationGuard role="user" component={Edct} />,
+              element: <AuthenticationGuard role="tmu" component={Edct} />,
               errorElement: <ErrorPage />,
               loader: AirportCodesLoader,
             },

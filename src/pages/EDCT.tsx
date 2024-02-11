@@ -11,6 +11,7 @@ import {
   AppBar,
   Box,
   IconButton,
+  Link,
   Toolbar,
   Typography,
   useColorScheme,
@@ -19,10 +20,11 @@ import debug from "debug";
 import { DateTime } from "luxon";
 import pluralize from "pluralize";
 import { useEffect, useState } from "react";
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import AlertSnackbar from "../components/AlertSnackbar";
 import VatsimEDCTFlightPlans from "../components/EDCTFlightPlans";
 import VatsimEDCTFlightPlansViewOnly from "../components/EDCTFlightPlansViewOnly";
+import ErrorDisplay from "../components/ErrorDisplay";
 import {
   LogoutMethod,
   UserWithRoles,
@@ -142,13 +144,21 @@ const Edct = () => {
     });
   };
 
-  // Don't allow signed up but unverified users to do anything. They get
-  // redirected straight to the view page for now.
   if (
     !viewOnly &&
-    user?.["https://my-app.example.com/roles"]?.includes("unverified")
+    !user?.["https://my-app.example.com/roles"]?.includes("TMU")
   ) {
-    return <Navigate to="/pending" />;
+    return (
+      <ErrorDisplay
+        message={
+          <Typography align="center">
+            This page is only available to TMUs.
+            <br />
+            Are you looking for <Link href="/view">the controller page</Link>?
+          </Typography>
+        }
+      />
+    );
   }
 
   return (
@@ -166,7 +176,7 @@ const Edct = () => {
           </Typography>
           <IconButton
             component={Link}
-            to="/help"
+            href="/help"
             title="Help"
             target="_blank"
             rel="noopener noreferrer"

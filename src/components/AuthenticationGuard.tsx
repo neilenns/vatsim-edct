@@ -2,7 +2,7 @@ import { withAuthenticationRequired } from "@auth0/auth0-react";
 import { PageLoader } from "./PageLoader";
 
 interface AuthenticationGuardProps {
-  role: "admin" | "user";
+  role: "admin" | "tmu";
   component: React.ComponentType<object>;
 }
 
