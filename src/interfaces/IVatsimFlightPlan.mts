@@ -15,4 +15,5 @@ export interface IVatsimFlightPlan {
   importState?: ImportState;
   revision: number;
   isCoasting: boolean;
+  sentEDCT: boolean;
 }
