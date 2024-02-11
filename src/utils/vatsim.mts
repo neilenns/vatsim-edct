@@ -65,9 +65,11 @@ export function processIncomingEDCT(
       existing.departureTime = incoming.departureTime;
       existing.isPrefile = incoming.isPrefile;
       existing.revision = incoming.revision;
+      existing.isCoasting = incoming.isCoasting;
+      existing.sentEDCT = incoming.sentEDCT;
 
       // If something changed then update the last time it was updated and automatically
-      // set the state to imported
+      // set the state to udpated
       if (updated || edctUpdated) {
         existing.updatedAt = DateTime.utc();
         existing.importState = ImportState.UPDATED;

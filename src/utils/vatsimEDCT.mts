@@ -18,6 +18,8 @@ export default class vatsimEDCT implements IVatsimFlightPlan {
   revision!: number;
   minutesToEDCT?: number;
   updatedAt: DateTime = DateTime.utc();
+  isCoasting = false;
+  sentEDCT = false;
 
   get EDCT(): string | undefined {
     return this._edct;
@@ -44,6 +46,8 @@ export default class vatsimEDCT implements IVatsimFlightPlan {
     this.departureTime = flightPlan.departureTime;
     this.EDCT = flightPlan.EDCT;
     this.revision = flightPlan.revision;
+    this.isCoasting = flightPlan.isCoasting;
+    this.sentEDCT = flightPlan.sentEDCT;
   }
 
   static calculateShortEDCT(EDCT: string | undefined): string | undefined {
