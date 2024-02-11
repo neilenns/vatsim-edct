@@ -30,6 +30,12 @@ interface EDCTDataGridProps extends Omit<DataGridProps, "rows" | "columns"> {
 const columns: GridColDef[] = [
   { field: "_id" },
   {
+    field: "sentEDCT",
+    headerName: "Notified",
+    editable: true,
+    type: "boolean",
+  },
+  {
     field: "callsign",
     headerName: "Callsign",
     width: 150,
@@ -114,41 +120,46 @@ const EDCTDataGrid = ({
       const timeRegex = /^(\d{2}:\d{2}$)/; // hh:mm
       const plusRegex = /^\+(\d+)$/; // +time
 
-      let newEDCTDateTime: DateTime | null;
+      let newEDCTDateTime: DateTime | undefined | null = undefined;
 
-      // An empty shortEDCT means no EDCT should be assigned to the flight
-      if (newEDCT.shortEDCT === undefined || newEDCT.shortEDCT.trim() === "") {
-        newEDCTDateTime = null;
-      }
-      // If the string starts with + then the new EDCT time is the current time in UTC plus the requested minutes
-      else if (
-        newEDCT.shortEDCT.startsWith("+") &&
-        plusRegex.test(newEDCT.shortEDCT)
-      ) {
-        const minutes = parseInt(newEDCT.shortEDCT.substring(1));
-        newEDCTDateTime = DateTime.utc().plus({ minutes });
-      }
-      // Otherwise assume it is a time in the format "HH:mm"
-      else if (timeRegex.test(newEDCT.shortEDCT)) {
-        newEDCTDateTime = DateTime.fromFormat(newEDCT.shortEDCT, "HH:mm", {
-          zone: "UTC",
-        });
-
-        // If the new time wound up being in the past then it really should be tomorrow.
-        // Fix it.
-        if (newEDCTDateTime < DateTime.utc()) {
-          newEDCTDateTime = newEDCTDateTime.plus({ days: 1 });
+      if (newRow.shortEDCT !== originalRow.shortEDCT) {
+        // An empty shortEDCT means no EDCT should be assigned to the flight
+        if (
+          newEDCT.shortEDCT === undefined ||
+          newEDCT.shortEDCT.trim() === ""
+        ) {
+          newEDCTDateTime = null;
         }
-      } else {
-        setSnackbar({
-          children: `Unable to updated EDCT: ${newEDCT.shortEDCT} is not a valid format.`,
-          severity: "error",
-        });
-        return originalRow;
+        // If the string starts with + then the new EDCT time is the current time in UTC plus the requested minutes
+        else if (
+          newEDCT.shortEDCT.startsWith("+") &&
+          plusRegex.test(newEDCT.shortEDCT)
+        ) {
+          const minutes = parseInt(newEDCT.shortEDCT.substring(1));
+          newEDCTDateTime = DateTime.utc().plus({ minutes });
+        }
+        // Otherwise assume it is a time in the format "HH:mm"
+        else if (timeRegex.test(newEDCT.shortEDCT)) {
+          newEDCTDateTime = DateTime.fromFormat(newEDCT.shortEDCT, "HH:mm", {
+            zone: "UTC",
+          });
+
+          // If the new time wound up being in the past then it really should be tomorrow.
+          // Fix it.
+          if (newEDCTDateTime < DateTime.utc()) {
+            newEDCTDateTime = newEDCTDateTime.plus({ days: 1 });
+          }
+        } else {
+          setSnackbar({
+            children: `Unable to updated EDCT: ${newEDCT.shortEDCT} is not a valid format.`,
+            severity: "error",
+          });
+          return originalRow;
+        }
       }
 
       try {
-        await updateEdct(newEDCT._id, newEDCTDateTime);
+        await updateEdct(newEDCT._id, newEDCT.sentEDCT, newEDCTDateTime);
 
         // The GridRowModel isn't really a vatsimEDCT so it doesn't have a true EDCT setter.
         // This means manually updating the shortEDCT and minutesToEDCT properties
@@ -156,12 +167,14 @@ const EDCTDataGrid = ({
         newEDCT.minutesToEDCT = vatsimEDCT.calculateMinutesToEDCT(newEDCT.EDCT);
         newEDCT.shortEDCT = vatsimEDCT.calculateShortEDCT(newEDCT.EDCT);
 
-        setSnackbar({
-          children: `EDCT for ${newEDCT.callsign} updated to ${
-            newEDCTDateTime?.toISOTime() ?? " no EDCT"
-          }`,
-          severity: "info",
-        });
+        if (newEDCTDateTime !== undefined) {
+          setSnackbar({
+            children: `EDCT for ${newEDCT.callsign} updated to ${
+              newEDCTDateTime?.toISOTime() ?? " no EDCT"
+            }`,
+            severity: "info",
+          });
+        }
 
         return newEDCT;
       } catch (error) {

@@ -4,7 +4,8 @@ import http from "../utils/http.mts";
 
 export async function updateEdct(
   _id: string | undefined,
-  EDCT: DateTime | null
+  sentEDCT: boolean,
+  EDCT: DateTime | null | undefined
 ): Promise<IVatsimFlightPlan | undefined> {
   if (!_id) {
     return;
@@ -12,6 +13,7 @@ export async function updateEdct(
 
   const response = await http.put(`vatsim/flightPlans/edct`, {
     _id,
+    sentEDCT,
     EDCT: EDCT?.toISO() ?? null,
   });
 
