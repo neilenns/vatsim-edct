@@ -10,18 +10,11 @@ const cleanCodes = (codes: string | null): string | null => {
     .join(",");
 };
 
-interface AppAction {
-  getAccessTokenSilently: () => Promise<string>; // <-- or whatever this needs to be
-}
+export const AirportCodesLoader: ActionFunction = ({ request }) => {
+  const url = new URL(request.url);
 
-export const AirportCodesLoader =
-  ({ getAccessTokenSilently }: AppAction): ActionFunction =>
-  async ({ request }) => {
-    const url = new URL(request.url);
-
-    console.log(await getAccessTokenSilently());
-    return {
-      departureCodes: cleanCodes(url.searchParams.get("departureCodes")) ?? "",
-      arrivalCodes: cleanCodes(url.searchParams.get("arrivalCodes")) ?? "",
-    };
+  return {
+    departureCodes: cleanCodes(url.searchParams.get("departureCodes")) ?? "",
+    arrivalCodes: cleanCodes(url.searchParams.get("arrivalCodes")) ?? "",
   };
+};

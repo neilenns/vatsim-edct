@@ -3,6 +3,7 @@ import { IVatsimFlightPlan } from "../interfaces/IVatsimFlightPlan.mts";
 import http from "../utils/http.mts";
 
 export async function updateEdct(
+  authToken: string,
   _id: string | undefined,
   sentEDCT: boolean,
   EDCT: DateTime | null | undefined
@@ -11,6 +12,7 @@ export async function updateEdct(
     return;
   }
 
+  http.authorized(authToken);
   const response = await http.put(`vatsim/flightPlans/edct`, {
     _id,
     sentEDCT,
