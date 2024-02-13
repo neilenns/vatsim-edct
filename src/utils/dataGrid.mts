@@ -10,10 +10,6 @@ import { clsx } from "clsx";
  * @returns The formatted time as a string.
  */
 export function formatDateTime(params: GridValueFormatterParams<string>) {
-  if (params.value === null || params.value === undefined) {
-    return;
-  }
-
   const depTime = DateTime.fromISO(params.value, { zone: "UTC" });
   return depTime.toLocaleString(DateTime.TIME_24_SIMPLE);
 }
@@ -26,15 +22,18 @@ export function formatDateTime(params: GridValueFormatterParams<string>) {
  */
 export function getRowClassName(params: GridRowParams) {
   const flightPlan = params.row as vatsimEDCT;
-  if (!flightPlan || flightPlan.minutesToEDCT === undefined) {
+  if (flightPlan.minutesToEDCT === undefined) {
     return "";
   }
 
   return clsx({
-    "":
-      flightPlan.minutesToEDCT === undefined || flightPlan.minutesToEDCT >= 10,
-    "vatsim--EDCT--late": flightPlan.minutesToEDCT <= 0,
+    "vatsim--CST": flightPlan.isCoasting,
+    "": flightPlan.minutesToEDCT >= 10 && !flightPlan.isCoasting,
+    "vatsim--EDCT--late":
+      flightPlan.minutesToEDCT <= 0 && !flightPlan.isCoasting,
     "vatsim--EDCT--urgent":
-      flightPlan.minutesToEDCT > 0 && flightPlan.minutesToEDCT < 10,
+      flightPlan.minutesToEDCT > 0 &&
+      flightPlan.minutesToEDCT < 10 &&
+      !flightPlan.isCoasting,
   });
 }

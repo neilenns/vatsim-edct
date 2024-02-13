@@ -15,6 +15,30 @@ const getSelectedHoverBackgroundColor = (color: string, mode: string) =>
   mode === "dark" ? darken(color, 0.4) : lighten(color, 0.4);
 
 const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
+  "& .vatsim--CST": {
+    backgroundColor: getBackgroundColor(
+      theme.palette.grey[600],
+      theme.palette.mode
+    ),
+    "&:hover": {
+      backgroundColor: getHoverBackgroundColor(
+        theme.palette.grey[600],
+        theme.palette.mode
+      ),
+    },
+    "&.Mui-selected": {
+      backgroundColor: getSelectedBackgroundColor(
+        theme.palette.grey[600],
+        theme.palette.mode
+      ),
+      "&:hover": {
+        backgroundColor: getSelectedHoverBackgroundColor(
+          theme.palette.grey[600],
+          theme.palette.mode
+        ),
+      },
+    },
+  },
   "& .vatsim--EDCT--urgent": {
     backgroundColor: getBackgroundColor(
       theme.palette.warning.main,
