@@ -1,4 +1,4 @@
-import { LoaderFunction } from "react-router";
+import { ActionFunction } from "react-router";
 
 const cleanCodes = (codes: string | null): string | null => {
   if (!codes) {
@@ -10,11 +10,18 @@ const cleanCodes = (codes: string | null): string | null => {
     .join(",");
 };
 
-export const AirportCodesLoader: LoaderFunction = ({ request }) => {
-  const url = new URL(request.url);
+interface AppAction {
+  getAccessTokenSilently: () => Promise<string>; // <-- or whatever this needs to be
+}
 
-  return {
-    departureCodes: cleanCodes(url.searchParams.get("departureCodes")) ?? "",
-    arrivalCodes: cleanCodes(url.searchParams.get("arrivalCodes")) ?? "",
+export const AirportCodesLoader =
+  ({ getAccessTokenSilently }: AppAction): ActionFunction =>
+  async ({ request }) => {
+    const url = new URL(request.url);
+
+    console.log(await getAccessTokenSilently());
+    return {
+      departureCodes: cleanCodes(url.searchParams.get("departureCodes")) ?? "",
+      arrivalCodes: cleanCodes(url.searchParams.get("arrivalCodes")) ?? "",
+    };
   };
-};
