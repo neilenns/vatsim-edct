@@ -18,11 +18,11 @@ export const AuthenticationGuard = ({
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
   const { isAuthenticated, user } = useAuth0<User & UserWithRoles>();
 
-  // Perform additional validation after withAuthenticationRequired completes
   const AuthenticatedComponent = withAuthenticationRequired(Component, {
     onRedirecting: () => <PageLoader />,
   });
 
+  // Perform additional validation after withAuthenticationRequired completes
   useEffect(() => {
     if (!isAuthenticated) {
       return;
