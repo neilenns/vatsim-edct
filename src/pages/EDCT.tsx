@@ -144,21 +144,6 @@ const Edct = () => {
     });
   };
 
-  if (
-    !viewOnly &&
-    !user?.["https://my-app.example.com/roles"]?.includes("TMU")
-  ) {
-    return (
-      <ErrorDisplay>
-        <Typography align="center">
-          This page is only available to TMUs.
-          <br />
-          Are you looking for <Link href="/view">the controller page</Link>?
-        </Typography>
-      </ErrorDisplay>
-    );
-  }
-
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <AppBar

@@ -6,10 +6,9 @@ import { AirportCodesLoader } from "../loaders/AirportCodesLoader";
 import Edct from "./EDCT";
 import ErrorPage from "./ErrorPage";
 import WelcomePage from "./Welcome";
+import CallbackPage from "./Callback";
 
 const App = () => {
-  const { getAccessTokenSilently } = useAuth0();
-
   const router = useMemo(() => {
     return createBrowserRouter([
       {
@@ -20,11 +19,16 @@ const App = () => {
             errorElement: <ErrorPage />,
           },
           {
+            path: "/callback",
+            element: <CallbackPage />,
+            errorElement: <ErrorPage />,
+          },
+          {
             children: [
               {
                 id: "edct",
                 path: "/edct",
-                element: <AuthenticationGuard component={Edct} />,
+                element: <AuthenticationGuard component={Edct} role="TMU" />,
                 errorElement: <ErrorPage />,
                 loader: AirportCodesLoader,
               },
@@ -40,7 +44,7 @@ const App = () => {
         ],
       },
     ]);
-  }, [getAccessTokenSilently]);
+  }, []);
 
   return <RouterProvider router={router} />;
 };

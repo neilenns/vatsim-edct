@@ -29,7 +29,7 @@ export const Auth0ProviderWithNavigate = ({
       domain={ENV.VITE_AUTH0_DOMAIN}
       clientId={ENV.VITE_AUTH0_CLIENT_ID}
       authorizationParams={{
-        audience: ENV.VITE_AUTH0_AUDIENCE,
+        //        audience: ENV.VITE_AUTH0_AUDIENCE,
         redirect_uri: ENV.VITE_AUTH0_CALLBACK_URL,
       }}
     >
