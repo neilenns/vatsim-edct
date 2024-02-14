@@ -24,11 +24,7 @@ import { useLocation } from "react-router-dom";
 import AlertSnackbar from "../components/AlertSnackbar";
 import VatsimEDCTFlightPlans from "../components/EDCTFlightPlans";
 import VatsimEDCTFlightPlansViewOnly from "../components/EDCTFlightPlansViewOnly";
-import ErrorDisplay from "../components/ErrorDisplay";
-import {
-  LogoutMethod,
-  UserWithRoles,
-} from "../context/Auth0ProviderWithNavigate";
+import { LogoutMethod } from "../context/Auth0ProviderWithNavigate";
 import { useAppContext } from "../hooks/useAppContext.mts";
 
 const logger = debug("edct:EDCTPage");
@@ -42,10 +38,8 @@ const Edct = () => {
   const { socket, setSnackbar } = useAppContext();
   const {
     logout,
-    user,
   }: {
     logout: LogoutMethod;
-    user?: UserWithRoles;
   } = useAuth0();
 
   useEffect(() => {

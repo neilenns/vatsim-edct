@@ -1,7 +1,5 @@
 import {
-  Dispatch,
   PropsWithChildren,
-  SetStateAction,
   createContext,
   useCallback,
   useEffect,
@@ -11,13 +9,6 @@ import {
 import socketIOClient from "socket.io-client";
 import { AlertSnackbarProps } from "../components/AlertSnackbar";
 import { ENV } from "../env.mts";
-import { IUser } from "../interfaces/IUser.mts";
-
-// This method of setting up app context in TypeScript comes from
-// https://gist.github.com/JLarky/5a1642abd8741f2683a817f36dd48e78#file-darkcontextminimal-tsx
-export type SetUserFunction = Dispatch<
-  SetStateAction<Partial<IUser> | undefined>
->;
 
 const useProviderValue = () => {
   const [snackbar, setSnackbar] = useState<AlertSnackbarProps>(null);
