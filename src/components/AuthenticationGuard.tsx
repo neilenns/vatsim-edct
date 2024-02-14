@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { UserWithRoles } from "../context/Auth0ProviderWithNavigate";
 import ErrorDisplay from "./ErrorDisplay";
 import { Typography } from "@mui/material";
+import { getUserInfo } from "../services/user.mts";
+import { IAuth0User } from "../interfaces/IUser.mts";
 
 interface AuthenticationGuardProps {
   role: string;
@@ -16,7 +18,10 @@ export const AuthenticationGuard = ({
 }: AuthenticationGuardProps) => {
   const [isAuthorizing, setIsAuthorizing] = useState<boolean>(true);
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
-  const { isAuthenticated, user } = useAuth0<User & UserWithRoles>();
+  const [userInfo, setUserInfo] = useState<IAuth0User | undefined>();
+  const { isAuthenticated, user, getAccessTokenSilently } = useAuth0<
+    User & UserWithRoles
+  >();
 
   const AuthenticatedComponent = withAuthenticationRequired(Component, {
     onRedirecting: () => <PageLoader />,
@@ -28,31 +33,61 @@ export const AuthenticationGuard = ({
       return;
     }
 
-    if (!user?.["https://my-app.example.com/roles"]?.includes(role)) {
-      setIsAuthorized(false);
-    } else {
-      setIsAuthorized(true);
-    }
+    // Async method to fetch the user info and verify the role.
+    // This way of calling async inside useEffect comes from https://devtrium.com/posts/async-functions-useeffect.
+    const fetchData = async () => {
+      const userInfo = await getUserInfo(
+        await getAccessTokenSilently(),
+        user?.sub
+      );
 
-    setIsAuthorizing(false);
-  }, [isAuthenticated, user, role]);
+      setUserInfo(userInfo);
+
+      if (!userInfo?.roles.includes(role)) {
+        setIsAuthorized(false);
+      } else {
+        setIsAuthorized(true);
+      }
+
+      setIsAuthorizing(false);
+    };
+
+    // Actually call the async method
+    fetchData().catch((err) => {
+      console.error(err);
+    });
+  }, [isAuthenticated, user, role, getAccessTokenSilently]);
 
   // While authorizing is taking place return the page loader
   if (isAuthorizing) {
     return <PageLoader />;
   }
 
-  // At this point authorization is done so show the content based
-  // on the required role.
+  // Pending users get told to hang tight.
+  if (userInfo?.isPending) {
+    return (
+      <ErrorDisplay>
+        <Typography align="center">
+          Your account is pending approval.
+          <br />
+          You&apos;ll receive an email once your account is activated.
+        </Typography>
+      </ErrorDisplay>
+    );
+  }
+
+  // Unauthorized users get denied.
   if (!isAuthorized) {
     return (
       <ErrorDisplay>
-        <Typography>
+        <Typography align="center">
           You do not have the required permissions to view this page.
         </Typography>
       </ErrorDisplay>
     );
-  } else {
+  }
+  // Authenticated gets to see the component.
+  else {
     return <AuthenticatedComponent />;
   }
 };

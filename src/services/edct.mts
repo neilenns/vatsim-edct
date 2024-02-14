@@ -12,8 +12,7 @@ export async function updateEdct(
     return;
   }
 
-  http.authorized(authToken);
-  const response = await http.put(`vatsim/flightPlans/edct`, {
+  const response = await http.put(authToken, `vatsim/flightPlans/edct`, {
     _id,
     sentEDCT,
     EDCT: EDCT?.toISO() ?? null,
