@@ -1,3 +1,4 @@
+import { useAuth0 } from "@auth0/auth0-react";
 import {
   DataGridProps,
   GridCellEditStartParams,
@@ -104,6 +105,7 @@ const EDCTDataGrid = ({
   initialState,
 }: EDCTDataGridProps) => {
   const { setSnackbar } = useAppContext();
+  const { getAccessTokenSilently } = useAuth0();
 
   const saveEDCTToServer = useCallback(
     async (newRow: GridRowModel, originalRow: GridRowModel) => {
@@ -159,7 +161,8 @@ const EDCTDataGrid = ({
       }
 
       try {
-        await updateEdct(newEDCT._id, newEDCT.sentEDCT, newEDCTDateTime);
+        const token = await getAccessTokenSilently();
+        await updateEdct(token, newEDCT._id, newEDCT.sentEDCT, newEDCTDateTime);
 
         // The GridRowModel isn't really a vatsimEDCT so it doesn't have a true EDCT setter.
         // This means manually updating the shortEDCT and minutesToEDCT properties
@@ -186,7 +189,7 @@ const EDCTDataGrid = ({
         return originalRow;
       }
     },
-    [setSnackbar]
+    [setSnackbar, getAccessTokenSilently]
   );
 
   return (

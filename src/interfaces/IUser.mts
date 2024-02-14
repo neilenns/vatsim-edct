@@ -1,11 +1,7 @@
-// Define the interface for the User
-export type Role = "admin" | "user";
-export interface IUser {
+export interface IAuth0User {
   _id: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  isVerified: boolean;
-  role: Role;
-  token: string;
+  sub: string;
+  email?: string;
+  isPending: boolean;
+  roles: string[];
 }

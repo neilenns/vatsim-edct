@@ -11,53 +11,85 @@ class CustomHttp {
 
     this.instance.defaults.headers.common["x-api-key"] = ENV.VITE_API_KEY;
     this.instance.defaults.withCredentials = true;
-
-    // Automatically add the authentication token if it exists
-    this.instance.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem("token") ?? "";
-        if (token !== "") {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      null,
-      { synchronous: true }
-    );
   }
 
   authorized(token: string): AxiosInstance {
-    this.instance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    this.instance.defaults.headers.common.Authorization = `Bearer ${token}`;
     return this.instance;
   }
 
   // Seems like there should be a better way to do this but whatever.
-  get<T>(url: string, config?: AxiosRequestConfig) {
-    return this.instance.get<T>(url, config);
+  get<T>(token: string, url: string, config?: AxiosRequestConfig) {
+    return this.instance.get<T>(url, {
+      ...config,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   }
 
-  post<T>(url: string, data?: unknown, config?: AxiosRequestConfig) {
-    return this.instance.post<T>(url, data, config);
+  post<T>(
+    token: string,
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig
+  ) {
+    return this.instance.post<T>(url, data, {
+      ...config,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   }
 
-  put(url: string, data?: unknown, config?: AxiosRequestConfig) {
-    return this.instance.put(url, data, config);
+  put(token: string, url: string, data?: unknown, config?: AxiosRequestConfig) {
+    return this.instance.put(url, data, {
+      ...config,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   }
 
-  delete(url: string, config?: AxiosRequestConfig) {
-    return this.instance.delete(url, config);
+  delete(token: string, url: string, config?: AxiosRequestConfig) {
+    return this.instance.delete(url, {
+      ...config,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   }
 
-  patch(url: string, data?: unknown, config?: AxiosRequestConfig) {
-    return this.instance.patch(url, data, config);
+  patch(
+    token: string,
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig
+  ) {
+    return this.instance.patch(url, data, {
+      ...config,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   }
 
-  head(url: string, config?: AxiosRequestConfig) {
-    return this.instance.head(url, config);
+  head(token: string, url: string, config?: AxiosRequestConfig) {
+    return this.instance.head(url, {
+      ...config,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   }
 
-  options(url: string, config?: AxiosRequestConfig) {
-    return this.instance.options(url, config);
+  options(token: string, url: string, config?: AxiosRequestConfig) {
+    return this.instance.options(url, {
+      ...config,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   }
 }
 

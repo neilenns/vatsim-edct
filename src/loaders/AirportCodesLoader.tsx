@@ -1,4 +1,4 @@
-import { LoaderFunction } from "react-router";
+import { ActionFunction } from "react-router";
 
 const cleanCodes = (codes: string | null): string | null => {
   if (!codes) {
@@ -10,7 +10,7 @@ const cleanCodes = (codes: string | null): string | null => {
     .join(",");
 };
 
-export const AirportCodesLoader: LoaderFunction = ({ request }) => {
+export const AirportCodesLoader: ActionFunction = ({ request }) => {
   const url = new URL(request.url);
 
   return {

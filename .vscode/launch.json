@@ -7,8 +7,12 @@
       "runtimeExecutable": "dev",
       "url": "http://localhost:5173",
       "webRoot": "${workspaceFolder}/src",
-      "skipFiles": ["${workspaceFolder}/src/node_modules/**/*.js"],
-      "preLaunchTask": "run client"
+      "skipFiles": ["${workspaceFolder}/node_modules/**/*.js"],
+      "preLaunchTask": "run client",
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
     }
   ]
 }

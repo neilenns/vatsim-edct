@@ -1,7 +1,9 @@
+import { useAuth0 } from "@auth0/auth0-react";
 import {
   DarkMode as DarkModeIcon,
   Help as HelpIcon,
   LightMode as LightModeIcon,
+  Logout as LogoutIcon,
   VolumeOff as MutedIcon,
   VolumeMute as UnmutedIcon,
 } from "@mui/icons-material";
@@ -9,6 +11,7 @@ import {
   AppBar,
   Box,
   IconButton,
+  Link,
   Toolbar,
   Typography,
   useColorScheme,
@@ -17,10 +20,11 @@ import debug from "debug";
 import { DateTime } from "luxon";
 import pluralize from "pluralize";
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import AlertSnackbar from "../components/AlertSnackbar";
 import VatsimEDCTFlightPlans from "../components/EDCTFlightPlans";
 import VatsimEDCTFlightPlansViewOnly from "../components/EDCTFlightPlansViewOnly";
+import { LogoutMethod } from "../context/Auth0ProviderWithNavigate";
 import { useAppContext } from "../hooks/useAppContext.mts";
 
 const logger = debug("edct:EDCTPage");
@@ -32,6 +36,11 @@ const Edct = () => {
   const [currentTime, setCurrentTime] = useState<DateTime>(DateTime.utc());
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const { socket, setSnackbar } = useAppContext();
+  const {
+    logout,
+  }: {
+    logout: LogoutMethod;
+  } = useAuth0();
 
   useEffect(() => {
     // Update current time every minute
@@ -121,9 +130,16 @@ const Edct = () => {
     };
   }, [socket, setSnackbar]);
 
+  const handleSignout = async () => {
+    await logout({
+      logoutParams: {
+        returnTo: window.location.origin,
+      },
+    });
+  };
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      {/* AppBar */}
       <AppBar
         position="static"
         sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
@@ -137,7 +153,7 @@ const Edct = () => {
           </Typography>
           <IconButton
             component={Link}
-            to="/help"
+            href="/help"
             title="Help"
             target="_blank"
             rel="noopener noreferrer"
@@ -157,6 +173,16 @@ const Edct = () => {
             }
           >
             {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
+          <IconButton
+            onClick={() => {
+              void (async () => {
+                await handleSignout();
+              })();
+            }}
+            aria-label="Sign out"
+          >
+            <LogoutIcon />
           </IconButton>
         </Toolbar>
       </AppBar>

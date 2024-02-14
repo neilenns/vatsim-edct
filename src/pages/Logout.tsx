@@ -1,31 +1,20 @@
+import { useAuth0 } from "@auth0/auth0-react";
 import { Box, CircularProgress } from "@mui/material";
-import { useEffect, useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import http from "../utils/http.mts";
-import ILoginResponse from "../interfaces/ILoginResponse.mts";
-import debug from "debug";
-
-const logger = debug("edct:logout");
 
 const LogoutPage = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth0();
 
-  const logout = useCallback(async () => {
-    await http
-      .get<ILoginResponse>("logout")
-      .catch(() => {
-        logger("User is already logged out.");
-      }) // We don't have to do anything on errors.
-      .finally(() => {
-        localStorage.clear();
-        localStorage.setItem("logout", Date.now().toString());
-        navigate("/");
-      });
-  }, [navigate]);
+  const handleLogout = useCallback(async () => {
+    await logout();
+    navigate("/");
+  }, [logout, navigate]);
 
   useEffect(() => {
-    void logout();
-  }, [logout]);
+    void handleLogout();
+  }, [handleLogout]);
 
   return (
     <Box
