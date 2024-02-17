@@ -5,7 +5,7 @@ import { UserWithRoles } from "../context/Auth0ProviderWithNavigate";
 import ErrorDisplay from "./ErrorDisplay";
 import { Typography } from "@mui/material";
 import { getUserInfo } from "../services/user.mts";
-import { IAuth0User } from "../interfaces/IUser.mts";
+import { IAuth0User } from "../interfaces/IAuth0User.mts";
 
 interface AuthenticationGuardProps {
   role: string;

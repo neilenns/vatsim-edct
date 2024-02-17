@@ -3,7 +3,6 @@ import z from "zod";
 const envSchema = z.object({
   VITE_API_KEY: z.string(),
   VITE_AUTH0_AUDIENCE: z.string(),
-  VITE_AUTH0_CALLBACK_URL: z.string(),
   VITE_AUTH0_CLIENT_ID: z.string(),
   VITE_AUTH0_DOMAIN: z.string(),
   VITE_AUTO_CLEAR_UPDATE_INTERVAL_MINUTES: z.coerce.number().default(5),
