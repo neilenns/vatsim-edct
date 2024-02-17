@@ -12,11 +12,13 @@ export async function updateEdct(
     return;
   }
 
-  const response = await http.put(authToken, `vatsim/flightPlans/edct`, {
-    _id,
-    sentEDCT,
-    EDCT: EDCT?.toISO() ?? null,
-  });
+  const response = await http
+    .authorized(authToken)
+    .put(`vatsim/flightPlans/edct`, {
+      _id,
+      sentEDCT,
+      EDCT: EDCT?.toISO() ?? null,
+    });
 
   if (response.status === 200) {
     return response.data as IVatsimFlightPlan;
