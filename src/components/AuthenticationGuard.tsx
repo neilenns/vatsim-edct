@@ -5,7 +5,7 @@ import { UserWithRoles } from "../context/Auth0ProviderWithNavigate";
 import ErrorDisplay from "./ErrorDisplay";
 import { Typography } from "@mui/material";
 import { getUserInfo } from "../services/user.mts";
-import { IAuth0User } from "../interfaces/IAuth0User.mts";
+import { useAppContext } from "../hooks/useAppContext.mts";
 
 interface AuthenticationGuardProps {
   role: string;
@@ -18,10 +18,10 @@ export const AuthenticationGuard = ({
 }: AuthenticationGuardProps) => {
   const [isAuthorizing, setIsAuthorizing] = useState<boolean>(true);
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
-  const [userInfo, setUserInfo] = useState<IAuth0User | undefined>();
   const { isAuthenticated, user, getAccessTokenSilently } = useAuth0<
     User & UserWithRoles
   >();
+  const { userInfo, setUserInfo } = useAppContext();
 
   const AuthenticatedComponent = withAuthenticationRequired(Component, {
     onRedirecting: () => <PageLoader />,
@@ -56,7 +56,7 @@ export const AuthenticationGuard = ({
     fetchData().catch((err) => {
       console.error(err);
     });
-  }, [isAuthenticated, user, role, getAccessTokenSilently]);
+  }, [isAuthenticated, user, role, getAccessTokenSilently, setUserInfo]);
 
   // While authorizing is taking place return the page loader
   if (isAuthorizing) {
