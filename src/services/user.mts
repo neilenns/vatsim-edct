@@ -9,7 +9,7 @@ export async function getUserInfo(
     return;
   }
 
-  const response = await http.get(authToken, `users/me`);
+  const response = await http.authorized(authToken).get(`users/me`);
 
   if (response.status === 200) {
     return response.data as IAuth0User;

@@ -5,7 +5,6 @@ const socket = socketIOClient(ENV.VITE_SERVER_URL, {
   autoConnect: false,
   reconnection: true,
   reconnectionAttempts: 5,
-  auth: { token: ENV.VITE_API_KEY },
 });
 
 export default socket;

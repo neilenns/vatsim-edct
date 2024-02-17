@@ -27,7 +27,6 @@ const useProviderValue = () => {
       autoConnect: false,
       reconnection: true,
       reconnectionAttempts: 5,
-      auth: { token: ENV.VITE_API_KEY },
     })
   );
 
