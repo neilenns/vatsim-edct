@@ -12,21 +12,19 @@ const App = () => {
   const router = useMemo(() => {
     return createBrowserRouter([
       {
+        errorElement: <ErrorPage />,
         children: [
           {
             path: "/",
             element: <WelcomePage />,
-            errorElement: <ErrorPage />,
           },
           {
             path: "/logout",
             element: <Logout />,
-            errorElement: <ErrorPage />,
           },
           {
             path: "/callback",
             element: <Callback />,
-            errorElement: <ErrorPage />,
           },
           {
             children: [
@@ -34,14 +32,12 @@ const App = () => {
                 id: "edct",
                 path: "/edct",
                 element: <AuthenticationGuard component={Edct} role="TMU" />,
-                errorElement: <ErrorPage />,
                 loader: AirportCodesLoader,
               },
               {
                 id: "view",
                 path: "/view",
                 element: <Edct />,
-                errorElement: <ErrorPage />,
                 loader: AirportCodesLoader,
               },
             ],
