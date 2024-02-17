@@ -1,4 +1,4 @@
-import { IAuth0User } from "../interfaces/IUser.mts";
+import { IAuth0User } from "../interfaces/IAuth0User.mts";
 import http from "../utils/http.mts";
 
 export async function getUserInfo(

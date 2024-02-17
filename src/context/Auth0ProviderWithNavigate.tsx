@@ -14,13 +14,7 @@ interface Auth0ProviderWithNavigateProps {
 export const Auth0ProviderWithNavigate = ({
   children,
 }: Auth0ProviderWithNavigateProps) => {
-  if (
-    !(
-      ENV.VITE_AUTH0_DOMAIN &&
-      ENV.VITE_AUTH0_CLIENT_ID &&
-      ENV.VITE_AUTH0_CALLBACK_URL
-    )
-  ) {
+  if (!(ENV.VITE_AUTH0_DOMAIN && ENV.VITE_AUTH0_CLIENT_ID)) {
     return null;
   }
 

@@ -6,6 +6,7 @@ import Edct from "./EDCT";
 import ErrorPage from "./ErrorPage";
 import WelcomePage from "./Welcome";
 import CallbackPage from "./Callback";
+import Logout from "./Logout";
 
 const App = () => {
   const router = useMemo(() => {
@@ -15,6 +16,11 @@ const App = () => {
           {
             path: "/",
             element: <WelcomePage />,
+            errorElement: <ErrorPage />,
+          },
+          {
+            path: "/logout",
+            element: <Logout />,
             errorElement: <ErrorPage />,
           },
           {
