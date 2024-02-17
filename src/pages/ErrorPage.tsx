@@ -25,7 +25,7 @@ const ErrorPage = () => {
 
   return (
     <ErrorDisplay>
-      <Typography>
+      <Typography align="center">
         Oops!
         <br />
         {errorMessage(error)}
