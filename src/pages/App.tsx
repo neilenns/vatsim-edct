@@ -2,10 +2,11 @@ import { useMemo } from "react";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { AuthenticationGuard } from "../components/AuthenticationGuard";
 import { AirportCodesLoader } from "../loaders/AirportCodesLoader";
+import Callback from "./Callback";
 import Edct from "./EDCT";
 import ErrorPage from "./ErrorPage";
+import Logout from "./Logout";
 import WelcomePage from "./Welcome";
-import CallbackPage from "./Callback";
 
 const App = () => {
   const router = useMemo(() => {
@@ -18,8 +19,13 @@ const App = () => {
             errorElement: <ErrorPage />,
           },
           {
+            path: "/logout",
+            element: <Logout />,
+            errorElement: <ErrorPage />,
+          },
+          {
             path: "/callback",
-            element: <CallbackPage />,
+            element: <Callback />,
             errorElement: <ErrorPage />,
           },
           {
