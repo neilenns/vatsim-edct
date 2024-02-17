@@ -15,15 +15,6 @@ import { useImmer } from "use-immer";
 const useProviderValue = () => {
   const [snackbar, setSnackbar] = useState<AlertSnackbarProps>(null);
   const [muted, setMuted] = useState(localStorage.getItem("muted") === "true"); // Results in a default vaue of false
-  const [autoHideImported, setAutoHideImported] = useState(
-    localStorage.getItem("autoHideImported") === "true" // Results in a default vaue of false
-  );
-  const [hideInformational, setHideInformational] = useState(
-    localStorage.getItem("autoHideInformational") !== "false" // Results in a default vaue of true
-  );
-  const [streamingMode, setStreamingMode] = useState(
-    localStorage.getItem("streamingMode") == "true" // Results in a default vaue of false
-  );
   const [socket] = useState(
     socketIOClient(ENV.VITE_SERVER_URL, {
       autoConnect: false,
@@ -38,18 +29,6 @@ const useProviderValue = () => {
     localStorage.setItem("muted", muted.toString());
   }, [muted]);
 
-  useEffect(() => {
-    localStorage.setItem("autoHideImported", autoHideImported.toString());
-  }, [autoHideImported]);
-
-  useEffect(() => {
-    localStorage.setItem("hideInformational", hideInformational.toString());
-  }, [hideInformational]);
-
-  useEffect(() => {
-    localStorage.setItem("streamingMode", streamingMode.toString());
-  }, [streamingMode]);
-
   const isConnected = useCallback(() => {
     return socket.connected;
   }, [socket]);
@@ -58,12 +37,6 @@ const useProviderValue = () => {
     () => ({
       muted,
       setMuted,
-      autoHideImported,
-      setAutoHideImported,
-      hideInformational,
-      setHideInformational,
-      streamingMode,
-      setStreamingMode,
       socket,
       snackbar,
       setSnackbar,
@@ -71,17 +44,7 @@ const useProviderValue = () => {
       userInfo,
       setUserInfo,
     }),
-    [
-      muted,
-      autoHideImported,
-      hideInformational,
-      streamingMode,
-      socket,
-      snackbar,
-      isConnected,
-      userInfo,
-      setUserInfo,
-    ]
+    [muted, socket, snackbar, isConnected, userInfo, setUserInfo]
   );
 };
 
