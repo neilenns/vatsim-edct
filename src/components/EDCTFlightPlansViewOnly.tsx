@@ -1,17 +1,15 @@
 import { Box, Stack } from "@mui/material";
 import { GridCellParams } from "@mui/x-data-grid";
 import debug from "debug";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { useIdleTimer } from "react-idle-timer";
 import { useLoaderData } from "react-router-dom";
-import { useImmer } from "use-immer";
 import { useAppContext } from "../hooks/useAppContext.mts";
+import { useVatsim } from "../hooks/useVatsim.mts";
 import {
   IVatsimFlightPlan,
   ImportState,
 } from "../interfaces/IVatsimFlightPlan.mts";
-import { processIncomingEDCT } from "../utils/vatsim.mts";
-import vatsimEDCT from "../utils/vatsimEDCT.mts";
 import AirportCodes, { AirportCodesFormData } from "./AirportCodes";
 import { useAudio } from "./AudioHook";
 import EDCTDataGrid from "./EDCTDataGrid";
@@ -28,15 +26,22 @@ const VatsimEDCTFlightPlansViewOnly = ({
 }: VatsimEDCTFlightPlansViewOnlyProps) => {
   const { socket, setSnackbar } = useAppContext();
   const bellPlayer = useAudio("/bell.mp3");
-  const [flightPlans, setFlightPlans] = useImmer<vatsimEDCT[]>([]);
-  const [hasNew, setHasNew] = useState(false);
-  const [hasEDCTUpdates, setHasEDCTUpdates] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const {
+    processIncomingEDCT,
+    hasNew,
+    setHasNew,
+    hasEDCTUpdates,
+    setHasEDCTUpdates,
+    currentEDCT,
+    setCurrentEDCT,
+  } = useVatsim();
   const { departureCodes } = useLoaderData() as AirportCodesFormData;
 
   const connectToVatsim = useCallback(() => {
-    setFlightPlans([]);
+    setCurrentEDCT([]);
     socket.connect();
-  }, [setFlightPlans, socket]);
+  }, [setCurrentEDCT, socket]);
 
   // Set the window title and get the query params
   useEffect(() => {
@@ -55,11 +60,11 @@ const VatsimEDCTFlightPlansViewOnly = ({
   // Play bell sounds on new or updated flight plans
   useEffect(() => {
     if (hasNew || hasEDCTUpdates) {
-      bellPlayer.play();
+      void bellPlayer.play();
       setHasNew(false);
       setHasEDCTUpdates(false);
     }
-  }, [hasNew, bellPlayer, hasEDCTUpdates]);
+  }, [hasNew, bellPlayer, hasEDCTUpdates, setHasNew, setHasEDCTUpdates]);
 
   // This method of handling socket events comes from
   // https://dev.to/bravemaster619/how-to-use-socket-io-client-correctly-in-react-app-o65
@@ -78,13 +83,9 @@ const VatsimEDCTFlightPlansViewOnly = ({
       logger("Received VATSIM EDCT flight plans");
       console.log("Received VATSIM EDCT flight plans");
 
-      setFlightPlans((draft) => {
-        const result = processIncomingEDCT(draft, vatsimPlans);
-        setHasNew(result.hasNew);
-        setHasEDCTUpdates(result.hasEDCTUpdates);
-      });
+      processIncomingEDCT(vatsimPlans);
     },
-    [setFlightPlans]
+    [processIncomingEDCT]
   );
 
   // Register for socket connection events
@@ -136,7 +137,7 @@ const VatsimEDCTFlightPlansViewOnly = ({
         return;
       }
 
-      setFlightPlans((draft) => {
+      setCurrentEDCT((draft) => {
         const index = draft.findIndex((plan) => plan.callsign === params.value);
 
         if (index !== -1) {
@@ -146,7 +147,7 @@ const VatsimEDCTFlightPlansViewOnly = ({
         }
       });
     },
-    [setFlightPlans]
+    [setCurrentEDCT]
   );
 
   return (
@@ -156,7 +157,7 @@ const VatsimEDCTFlightPlansViewOnly = ({
         <Stack sx={{ mt: 2, ml: 1 }} spacing={2}>
           <EDCTDataGrid
             onToggleFlightPlanState={toggleFlightPlanState}
-            flightPlans={flightPlans}
+            flightPlans={currentEDCT}
             initialState={{
               sorting: {
                 sortModel: [{ field: "minutesToEDCT", sort: "asc" }],
