@@ -14,6 +14,7 @@ import AirportCodes, { AirportCodesFormData } from "./AirportCodes";
 import { useAudio } from "./AudioHook";
 import EDCTDataGrid from "./EDCTDataGrid";
 import Legend from "./Legend";
+import { enqueueSnackbar } from "notistack";
 
 const logger = debug("edct:EDCTFlightPlansViewOnly");
 
@@ -24,7 +25,7 @@ interface VatsimEDCTFlightPlansViewOnlyProps {
 const VatsimEDCTFlightPlansViewOnly = ({
   isConnected,
 }: VatsimEDCTFlightPlansViewOnlyProps) => {
-  const { socket, setSnackbar } = useAppContext();
+  const { socket } = useAppContext();
   const bellPlayer = useAudio("/bell.mp3");
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const {
@@ -117,9 +118,8 @@ const VatsimEDCTFlightPlansViewOnly = ({
     if (isConnected) {
       const message = `Inactivity detected, auto-refresh will stop in five minutes.`;
       logger(message);
-      setSnackbar({
-        children: message,
-        severity: "warning",
+      enqueueSnackbar(message, {
+        variant: "warning",
       });
     }
   };

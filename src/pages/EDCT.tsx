@@ -21,11 +21,11 @@ import { DateTime } from "luxon";
 import pluralize from "pluralize";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import AlertSnackbar from "../components/AlertSnackbar";
 import VatsimEDCTFlightPlans from "../components/EDCTFlightPlans";
 import VatsimEDCTFlightPlansViewOnly from "../components/EDCTFlightPlansViewOnly";
 import { LogoutMethod } from "../context/Auth0ProviderWithNavigate";
 import { useAppContext } from "../hooks/useAppContext.mts";
+import { enqueueSnackbar } from "notistack";
 
 const logger = debug("edct:EDCTPage");
 
@@ -33,26 +33,26 @@ const Edct = () => {
   const viewOnly = useLocation().pathname === "/view";
   const { mode, setMode } = useColorScheme();
   const { muted, setMuted } = useAppContext();
-  const [currentTime, setCurrentTime] = useState<DateTime>(DateTime.utc());
+  const [currentTime] = useState<DateTime>(DateTime.utc());
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
-  const { socket, setSnackbar } = useAppContext();
+  const { socket } = useAppContext();
   const {
     logout,
   }: {
     logout: LogoutMethod;
   } = useAuth0();
 
-  useEffect(() => {
-    // Update current time every minute
-    const intervalId = setInterval(() => {
-      setCurrentTime(DateTime.utc());
-    }, 1000); // 1000 milliseconds = 1 second
+  // useEffect(() => {
+  //   // Update current time every minute
+  //   const intervalId = setInterval(() => {
+  //     setCurrentTime(DateTime.utc());
+  //   }, 1000); // 1000 milliseconds = 1 second
 
-    // Clear interval on component unmount
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, []); // Empty dependency array ensures effect runs only once on mount
+  //   // Clear interval on component unmount
+  //   return () => {
+  //     clearInterval(intervalId);
+  //   };
+  // }, []); // Empty dependency array ensures effect runs only once on mount
 
   const toggleDarkMode = () => {
     mode === "light" ? setMode("dark") : setMode("light");
@@ -69,66 +69,76 @@ const Edct = () => {
   useEffect(() => {
     socket.on("connect", () => {
       setIsConnected(true);
-    });
 
+      // Make sure to disconnect when we are cleaned up
+      return () => {
+        socket.disconnect();
+      };
+    });
+  }, [socket]);
+
+  useEffect(() => {
     socket.on("disconnect", () => {
       logger("Disconnected from VATSIM updates");
       setIsConnected(false);
     });
+  }, [socket]);
 
+  useEffect(() => {
     // Note the use of .io here, to get the manager. reconnect_error fires from
     // the manager, not the socket. Super annoying.
     socket.io.on("reconnect_error", (error: Error) => {
       logger(`Error reconnecting to VATSIM updates: ${error.message}`);
-      setSnackbar({
-        children: `Unable to reconnect to server.`,
-        severity: "error",
+      enqueueSnackbar(`Unable to reconnect to server.`, {
+        variant: "error",
       });
+
       setIsConnected(null); // null to avoid playing the disconnect sound.
     });
+  }, [socket.io]);
 
+  useEffect(() => {
     socket.on("airportNotFound", (airportCodes: string[]) => {
       const message = `${pluralize(
         "Airport",
         airportCodes.length
       )} ${airportCodes.join(", ")} not found`;
       logger(message);
-      setSnackbar({
-        children: message,
-        severity: "warning",
+      enqueueSnackbar(message, {
+        variant: "warning",
       });
       socket.disconnect();
       setIsConnected(false);
     });
+  }, [socket]);
 
+  useEffect(() => {
     socket.on("insecureAirportCode", (airportCodes: string[]) => {
       const message = `${pluralize(
         "Airport",
         airportCodes.length
       )} ${airportCodes.join(", ")} not valid`;
       logger(message);
-      setSnackbar({
-        children: message,
-        severity: "error",
+      enqueueSnackbar(`Unable to reconnect to server.`, {
+        variant: "error",
       });
+
       socket.disconnect();
       setIsConnected(false);
     });
+  }, [socket]);
 
+  useEffect(() => {
     socket.on("connect_error", (error: Error) => {
-      logger(`Error connecting to VATSIM updates: ${error.message}`);
-      setSnackbar({
-        children: `Unable to connect for VATSIM updates: ${error.message}.`,
-        severity: "error",
+      const message = `Unable to connect for VATSIM updates: ${error.message}.`;
+      logger(message);
+      enqueueSnackbar(message, {
+        variant: "error",
       });
+
       setIsConnected(null); // null to avoid playing the disconnect sound.
     });
-
-    // Make sure to disconnect when we are cleaned up
-    return () => {
-      socket.disconnect();
-    };
-  }, [socket, setSnackbar]);
+  }, [socket]);
 
   const handleSignout = async () => {
     await logout({
@@ -194,7 +204,6 @@ const Edct = () => {
         ) : (
           <VatsimEDCTFlightPlans isConnected={isConnected} />
         )}
-        <AlertSnackbar />
       </Box>
     </Box>
   );

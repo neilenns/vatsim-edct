@@ -1,3 +1,4 @@
+import { enqueueSnackbar } from "notistack";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
   DataGridProps,
@@ -11,7 +12,6 @@ import { GridInitialStateCommunity } from "@mui/x-data-grid/models/gridStateComm
 import clsx from "clsx";
 import { DateTime } from "luxon";
 import { useCallback } from "react";
-import { useAppContext } from "../hooks/useAppContext.mts";
 import {
   IVatsimFlightPlan,
   ImportState,
@@ -104,7 +104,6 @@ const EDCTDataGrid = ({
   allowEdit,
   initialState,
 }: EDCTDataGridProps) => {
-  const { setSnackbar } = useAppContext();
   const { getAccessTokenSilently } = useAuth0();
 
   const saveEDCTToServer = useCallback(
@@ -112,9 +111,8 @@ const EDCTDataGrid = ({
       const newEDCT = newRow as vatsimEDCT;
 
       if (!newEDCT._id) {
-        setSnackbar({
-          children: `Unable to update EDCT: _id is undefined.`,
-          severity: "error",
+        enqueueSnackbar("Unable to update EDCT: _id is undefined.", {
+          variant: "error",
         });
         return originalRow;
       }
@@ -152,10 +150,13 @@ const EDCTDataGrid = ({
             newEDCTDateTime = newEDCTDateTime.plus({ days: 1 });
           }
         } else {
-          setSnackbar({
-            children: `Unable to updated EDCT: ${newEDCT.shortEDCT} is not a valid format.`,
-            severity: "error",
-          });
+          enqueueSnackbar(
+            `Unable to updated EDCT: ${newEDCT.shortEDCT} is not a valid format.`,
+            {
+              variant: "error",
+            }
+          );
+
           return originalRow;
         }
       }
@@ -173,25 +174,29 @@ const EDCTDataGrid = ({
           );
           newEDCT.shortEDCT = vatsimEDCT.calculateShortEDCT(newEDCT.EDCT);
 
-          setSnackbar({
-            children: `EDCT for ${newEDCT.callsign} updated to ${
+          enqueueSnackbar(
+            `EDCT for ${newEDCT.callsign} updated to ${
               newEDCTDateTime?.toISOTime() ?? " no EDCT"
             }`,
-            severity: "info",
-          });
+            {
+              variant: "info",
+            }
+          );
         }
 
         return newEDCT;
       } catch (error) {
         const err = error as Error;
-        setSnackbar({
-          children: `Unable to update EDCT for ${newEDCT.callsign}: ${err.message}`,
-          severity: "error",
-        });
+        enqueueSnackbar(
+          `Unable to update EDCT for ${newEDCT.callsign}: ${err.message}`,
+          {
+            variant: "error",
+          }
+        );
         return originalRow;
       }
     },
-    [setSnackbar, getAccessTokenSilently]
+    [getAccessTokenSilently]
   );
 
   return (

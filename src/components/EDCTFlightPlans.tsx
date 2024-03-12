@@ -1,3 +1,4 @@
+import { enqueueSnackbar } from "notistack";
 import { Box, Stack } from "@mui/material";
 import { GridCellParams } from "@mui/x-data-grid";
 import debug from "debug";
@@ -20,8 +21,9 @@ const logger = debug("edct:EDCTFlightPlans");
 interface VastimEDCTFlightPlansProps {
   isConnected: boolean | null;
 }
+
 const VatsimEDCTFlightPlans = ({ isConnected }: VastimEDCTFlightPlansProps) => {
-  const { socket, setSnackbar } = useAppContext();
+  const { socket } = useAppContext();
   const bellPlayer = useAudio("/bell.mp3");
   const { departureCodes, arrivalCodes } =
     useLoaderData() as AirportCodesFormData;
@@ -36,9 +38,9 @@ const VatsimEDCTFlightPlans = ({ isConnected }: VastimEDCTFlightPlansProps) => {
   } = useVatsim();
 
   const connectToVatsim = useCallback(() => {
-    setCurrentEDCT([]);
+    // setCurrentEDCT([]);
     socket.connect();
-  }, [setCurrentEDCT, socket]);
+  }, [socket]);
 
   // Set the window title
   useEffect(() => {
@@ -119,9 +121,8 @@ const VatsimEDCTFlightPlans = ({ isConnected }: VastimEDCTFlightPlansProps) => {
     if (isConnected) {
       const message = `Inactivity detected, auto-refresh will stop in five minutes.`;
       logger(message);
-      setSnackbar({
-        children: message,
-        severity: "warning",
+      enqueueSnackbar(message, {
+        variant: "warning",
       });
     }
   };

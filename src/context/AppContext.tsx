@@ -7,13 +7,11 @@ import {
   useState,
 } from "react";
 import socketIOClient from "socket.io-client";
-import { AlertSnackbarProps } from "../components/AlertSnackbar";
 import { ENV } from "../env.mts";
 import { IAuth0User } from "../interfaces/IAuth0User.mts";
 import { useImmer } from "use-immer";
 
 const useProviderValue = () => {
-  const [snackbar, setSnackbar] = useState<AlertSnackbarProps>(null);
   const [muted, setMuted] = useState(localStorage.getItem("muted") === "true"); // Results in a default vaue of false
   const [socket] = useState(
     socketIOClient(ENV.VITE_SERVER_URL, {
@@ -38,13 +36,11 @@ const useProviderValue = () => {
       muted,
       setMuted,
       socket,
-      snackbar,
-      setSnackbar,
       isConnected,
       userInfo,
       setUserInfo,
     }),
-    [muted, socket, snackbar, isConnected, userInfo, setUserInfo]
+    [muted, socket, isConnected, userInfo, setUserInfo]
   );
 };
 
