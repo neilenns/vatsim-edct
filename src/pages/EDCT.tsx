@@ -21,11 +21,11 @@ import { DateTime } from "luxon";
 import pluralize from "pluralize";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import AlertSnackbar from "../components/AlertSnackbar";
 import VatsimEDCTFlightPlans from "../components/EDCTFlightPlans";
 import VatsimEDCTFlightPlansViewOnly from "../components/EDCTFlightPlansViewOnly";
 import { LogoutMethod } from "../context/Auth0ProviderWithNavigate";
 import { useAppContext } from "../hooks/useAppContext.mts";
+import { enqueueSnackbar } from "notistack";
 
 const logger = debug("edct:EDCTPage");
 
@@ -35,7 +35,7 @@ const Edct = () => {
   const { muted, setMuted } = useAppContext();
   const [currentTime] = useState<DateTime>(DateTime.utc());
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
-  const { socket, setSnackbar } = useAppContext();
+  const { socket } = useAppContext();
   const {
     logout,
   }: {
@@ -89,13 +89,13 @@ const Edct = () => {
     // the manager, not the socket. Super annoying.
     socket.io.on("reconnect_error", (error: Error) => {
       logger(`Error reconnecting to VATSIM updates: ${error.message}`);
-      setSnackbar({
-        children: `Unable to reconnect to server.`,
-        severity: "error",
+      enqueueSnackbar(`Unable to reconnect to server.`, {
+        variant: "error",
       });
+
       setIsConnected(null); // null to avoid playing the disconnect sound.
     });
-  }, [setSnackbar, socket.io]);
+  }, [socket.io]);
 
   useEffect(() => {
     socket.on("airportNotFound", (airportCodes: string[]) => {
@@ -104,14 +104,13 @@ const Edct = () => {
         airportCodes.length
       )} ${airportCodes.join(", ")} not found`;
       logger(message);
-      setSnackbar({
-        children: message,
-        severity: "warning",
+      enqueueSnackbar(message, {
+        variant: "warning",
       });
       socket.disconnect();
       setIsConnected(false);
     });
-  }, [setSnackbar, socket]);
+  }, [socket]);
 
   useEffect(() => {
     socket.on("insecureAirportCode", (airportCodes: string[]) => {
@@ -120,25 +119,26 @@ const Edct = () => {
         airportCodes.length
       )} ${airportCodes.join(", ")} not valid`;
       logger(message);
-      setSnackbar({
-        children: message,
-        severity: "error",
+      enqueueSnackbar(`Unable to reconnect to server.`, {
+        variant: "error",
       });
+
       socket.disconnect();
       setIsConnected(false);
     });
-  }, [setSnackbar, socket]);
+  }, [socket]);
 
   useEffect(() => {
     socket.on("connect_error", (error: Error) => {
-      logger(`Error connecting to VATSIM updates: ${error.message}`);
-      setSnackbar({
-        children: `Unable to connect for VATSIM updates: ${error.message}.`,
-        severity: "error",
+      const message = `Unable to connect for VATSIM updates: ${error.message}.`;
+      logger(message);
+      enqueueSnackbar(message, {
+        variant: "error",
       });
+
       setIsConnected(null); // null to avoid playing the disconnect sound.
     });
-  }, [setSnackbar, socket]);
+  }, [socket]);
 
   const handleSignout = async () => {
     await logout({
@@ -204,7 +204,6 @@ const Edct = () => {
         ) : (
           <VatsimEDCTFlightPlans isConnected={isConnected} />
         )}
-        <AlertSnackbar />
       </Box>
     </Box>
   );
