@@ -164,13 +164,15 @@ const EDCTDataGrid = ({
         const token = await getAccessTokenSilently();
         await updateEdct(token, newEDCT._id, newEDCT.sentEDCT, newEDCTDateTime);
 
-        // The GridRowModel isn't really a vatsimEDCT so it doesn't have a true EDCT setter.
-        // This means manually updating the shortEDCT and minutesToEDCT properties
-        newEDCT.EDCT = newEDCTDateTime?.toISO() ?? "";
-        newEDCT.minutesToEDCT = vatsimEDCT.calculateMinutesToEDCT(newEDCT.EDCT);
-        newEDCT.shortEDCT = vatsimEDCT.calculateShortEDCT(newEDCT.EDCT);
-
         if (newEDCTDateTime !== undefined) {
+          // The GridRowModel isn't really a vatsimEDCT so it doesn't have a true EDCT setter.
+          // This means manually updating the shortEDCT and minutesToEDCT properties
+          newEDCT.EDCT = newEDCTDateTime?.toISO() ?? "";
+          newEDCT.minutesToEDCT = vatsimEDCT.calculateMinutesToEDCT(
+            newEDCT.EDCT
+          );
+          newEDCT.shortEDCT = vatsimEDCT.calculateShortEDCT(newEDCT.EDCT);
+
           setSnackbar({
             children: `EDCT for ${newEDCT.callsign} updated to ${
               newEDCTDateTime?.toISOTime() ?? " no EDCT"

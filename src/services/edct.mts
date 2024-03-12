@@ -17,7 +17,7 @@ export async function updateEdct(
     .put(`vatsim/flightPlans/edct`, {
       _id,
       sentEDCT,
-      EDCT: EDCT?.toISO() ?? null,
+      EDCT: EDCT === undefined ? undefined : EDCT?.toISO() ?? null,
     });
 
   if (response.status === 200) {
