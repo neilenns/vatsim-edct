@@ -33,7 +33,7 @@ const Edct = () => {
   const viewOnly = useLocation().pathname === "/view";
   const { mode, setMode } = useColorScheme();
   const { muted, setMuted } = useAppContext();
-  const [currentTime, setCurrentTime] = useState<DateTime>(DateTime.utc());
+  const [currentTime] = useState<DateTime>(DateTime.utc());
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const { socket, setSnackbar } = useAppContext();
   const {
@@ -42,17 +42,17 @@ const Edct = () => {
     logout: LogoutMethod;
   } = useAuth0();
 
-  useEffect(() => {
-    // Update current time every minute
-    const intervalId = setInterval(() => {
-      setCurrentTime(DateTime.utc());
-    }, 1000); // 1000 milliseconds = 1 second
+  // useEffect(() => {
+  //   // Update current time every minute
+  //   const intervalId = setInterval(() => {
+  //     setCurrentTime(DateTime.utc());
+  //   }, 1000); // 1000 milliseconds = 1 second
 
-    // Clear interval on component unmount
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, []); // Empty dependency array ensures effect runs only once on mount
+  //   // Clear interval on component unmount
+  //   return () => {
+  //     clearInterval(intervalId);
+  //   };
+  // }, []); // Empty dependency array ensures effect runs only once on mount
 
   const toggleDarkMode = () => {
     mode === "light" ? setMode("dark") : setMode("light");
@@ -69,13 +69,22 @@ const Edct = () => {
   useEffect(() => {
     socket.on("connect", () => {
       setIsConnected(true);
-    });
 
+      // Make sure to disconnect when we are cleaned up
+      return () => {
+        socket.disconnect();
+      };
+    });
+  }, [socket]);
+
+  useEffect(() => {
     socket.on("disconnect", () => {
       logger("Disconnected from VATSIM updates");
       setIsConnected(false);
     });
+  }, [socket]);
 
+  useEffect(() => {
     // Note the use of .io here, to get the manager. reconnect_error fires from
     // the manager, not the socket. Super annoying.
     socket.io.on("reconnect_error", (error: Error) => {
@@ -86,7 +95,9 @@ const Edct = () => {
       });
       setIsConnected(null); // null to avoid playing the disconnect sound.
     });
+  }, [setSnackbar, socket.io]);
 
+  useEffect(() => {
     socket.on("airportNotFound", (airportCodes: string[]) => {
       const message = `${pluralize(
         "Airport",
@@ -100,7 +111,9 @@ const Edct = () => {
       socket.disconnect();
       setIsConnected(false);
     });
+  }, [setSnackbar, socket]);
 
+  useEffect(() => {
     socket.on("insecureAirportCode", (airportCodes: string[]) => {
       const message = `${pluralize(
         "Airport",
@@ -114,7 +127,9 @@ const Edct = () => {
       socket.disconnect();
       setIsConnected(false);
     });
+  }, [setSnackbar, socket]);
 
+  useEffect(() => {
     socket.on("connect_error", (error: Error) => {
       logger(`Error connecting to VATSIM updates: ${error.message}`);
       setSnackbar({
@@ -123,12 +138,7 @@ const Edct = () => {
       });
       setIsConnected(null); // null to avoid playing the disconnect sound.
     });
-
-    // Make sure to disconnect when we are cleaned up
-    return () => {
-      socket.disconnect();
-    };
-  }, [socket, setSnackbar]);
+  }, [setSnackbar, socket]);
 
   const handleSignout = async () => {
     await logout({
